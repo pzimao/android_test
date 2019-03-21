@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="apkanalyzer">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/apkanalyzer.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/chimpchat-26.0.0-dev.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/common-26.0.0-dev.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/ddmlib-26.0.0-dev.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/guava-22.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/sdklib-26.0.0-dev.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
