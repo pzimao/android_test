@@ -1,29 +1,22 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DBUtil;
-import com.android.chimpchat.adb.AdbBackend;
+import cn.edu.uestc.utils.DeviceUtil;
 import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.IChimpImage;
-import com.android.chimpchat.core.PhysicalButton;
-import com.android.chimpchat.core.TouchPressType;
-import com.android.ddmlib.DdmPreferences;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
-import java.util.UUID;
 
 public class WechatTest {
 
-    public IChimpDevice device;
-    public Connection connection;
-    public Logger logger;
+    private IChimpDevice device;
+    private Connection connection;
+    private Logger logger;
 
-    public WechatTest(String deviceId) {
+    public WechatTest() {
         // 初始化设备；
-        device = new AdbBackend().waitForConnection(1000000, deviceId);
-        DdmPreferences.setTimeOut(500000);
-        connection = DBUtil.getCon();
+        device = DeviceUtil.getDevice();
         logger = LogManager.getLogger("wechat Tester");
     }
 
@@ -153,7 +146,7 @@ public class WechatTest {
 
     // 先截个屏，然后确定此屏上要点的位置
     // 再依次点
-    public void myTest() throws Exception {
+    public void play() throws Exception {
         int msgColor = -11048043;// 消息蓝色字的颜色是 -11048043
         int bgColor = -1184275;// 底色的颜色是 -1184275
         int frameColor = -6951831;// 绿框的颜色是 -6951831
@@ -189,8 +182,8 @@ public class WechatTest {
     }
 
     public static void main(String[] args) throws Exception {
-        WechatTest test = new WechatTest("127.0.0.1:7555");
-        test.myTest();
+        WechatTest test = new WechatTest();
+        test.play();
         // 释放资源。
         test.close();
     }

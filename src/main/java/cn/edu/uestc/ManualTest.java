@@ -1,35 +1,27 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.mythread.AppInstallThread;
-import cn.edu.uestc.mythread.DownloadThread;
-import cn.edu.uestc.mythread.TcpdumpThread;
 import cn.edu.uestc.utils.DBUtil;
+import cn.edu.uestc.utils.DeviceUtil;
+import cn.edu.uestc.utils.TcpdumpUtil;
 import com.android.chimpchat.adb.AdbBackend;
 import com.android.chimpchat.core.IChimpDevice;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Scanner;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ManualTest {
 
     public static IChimpDevice device;
-    public static Connection connection;
 
 
     static {
         // 初始化设备；
-        device = new AdbBackend().waitForConnection(1000000, "127.0.0.1:7555");
-        DdmPreferences.setTimeOut(500000);
-        connection = DBUtil.getCon();
+        device = DeviceUtil.getDevice();
     }
 
     public static void test() {
@@ -50,7 +42,7 @@ public class ManualTest {
                     if (!whiteSet.contains(packageName)) {
                         // 是新安装的APP
                         logger.info("开始抓【" + packageName + "】的数据包");
-                        new TcpdumpThread(device, packageName).start();
+                        new TcpdumpUtil(device, packageName).start();
 
                         logger.info("开始测试【 " + packageName+"】，请手动操作APP");
                         logger.info("在这里输入任意字符可以结束测试...");
