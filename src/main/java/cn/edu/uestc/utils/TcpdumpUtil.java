@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,7 @@ public class TcpdumpUtil extends Thread {
             String[] pkgs = packageContent.split("\n");
             logger.info(packageName + ":抓到的包的数量: " + pkgs.length);
 
-            LinkedHashMap<String, Integer> resultMap = new LinkedHashMap<>();
+            LinkedHashSet<String> domainSet = new LinkedHashSet<>();
             for (String pkg : pkgs) {
                 // 解析抓到的数据：
                 // 1. 判断DNS包类型
@@ -52,29 +53,33 @@ public class TcpdumpUtil extends Thread {
                         continue;
                     }
 
-                    if (!resultMap.containsKey(content)) {
-                        resultMap.put(content, 0);
+                    if (domainSet.add(content)) {
+                        logger.info(packageName + ":解析得到:" + content);
                     }
-                    // 该域名计数 +1
-                    resultMap.replace(content, resultMap.get(content) + 1);
-                    logger.info(packageName + ":解析得到:" + content);
                 }
             }
             // 获取到APP id
             String sql0 = "select id from app where actual_pkg_name = ?";
+            String sql1 = "select * from domain where domain = ?";
+            String sql2 = "INSERT INTO `domain` (`domain`) VALUES (?)";
+            String sql3 = "insert into app_domain(app_id, domain) values(? ,?)";
+
+
             ResultSet resultSet = (ResultSet) DBUtil.execute(sql0, packageName);
             int appId = 0;
             if (resultSet.next()) {
                 appId = resultSet.getInt(1);
             }
-            // 更新domain表和app_domain表
-            String sql1 = "INSERT INTO `domain` (`domain`) VALUES (?)";
-            String sql2 = "insert into app_domain(app_id, domain, count) values(? ,? ,?)";
-            for (String content : resultMap.keySet()) {
-                DBUtil.execute(sql1, content);
-                DBUtil.execute(sql2, String.valueOf(appId), content, String.valueOf(resultMap.get(content)));
+
+            for (String domain : domainSet) {
+                // 检查domain表
+                if (!((ResultSet) DBUtil.execute(sql1, domain)).next()) {
+                    // domain表不包含这个域名，则添加
+                    DBUtil.execute(sql2, domain);
+                }
+                DBUtil.execute(sql3, String.valueOf(appId), domain);
             }
-            logger.info(packageName + ":一共解析到 " + resultMap.size() + " 个域名,已保存");
+            logger.info(packageName + ":一共解析到 " + domainSet.size() + " 个域名,已保存");
         } catch (Exception e) {
             e.printStackTrace();
         }

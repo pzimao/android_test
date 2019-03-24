@@ -256,7 +256,7 @@ public class DownloadThread extends Thread {
 
         final Logger logger = LogManager.getLogger("定时任务");
         ArrayList<DownloadThread> downloadThreadList = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             DownloadThread downloadThread = new DownloadThread(i);
             downloadThreadList.add(downloadThread);
             downloadThread.start();

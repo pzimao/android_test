@@ -64,6 +64,7 @@ public class DBUtil {
 
         } catch (Exception e) {
             // todo 处理这里的异常
+            e.printStackTrace();
         }
         return result;
     }
