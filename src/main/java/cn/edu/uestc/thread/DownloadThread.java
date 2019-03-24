@@ -100,7 +100,7 @@ public class DownloadThread extends Thread {
         while (taskFlag) {
             taskFlag = false;
             try {
-                String sql1 = "select id, app_name, dl_url from app where dl_state != 1 and dl_url is not null";
+                String sql1 = "select id, app_name, dl_url from app where dl_state != 1 and dl_url is not null and id < 184398";
                 String sql2 = "update app set dl_state = ? where id = ?";
                 ResultSet resultSet = (ResultSet) DBUtil.execute(sql1);
                 dl:

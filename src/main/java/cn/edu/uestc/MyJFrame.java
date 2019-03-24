@@ -73,9 +73,9 @@ public class MyJFrame extends JFrame {
         btn.setSize(160, 40);
         btn.setLocation(800, 10);
 
-        btn.setFont(new Font("楷体", Font.PLAIN, 22));
-        appNameLabel.setFont(new Font("楷体", Font.PLAIN, 22));
-        appPkgNameLabel.setFont(new Font("楷体", Font.PLAIN, 22));
+        btn.setFont(new Font("楷体", Font.BOLD, 22));
+        appNameLabel.setFont(new Font("", Font.PLAIN, 22));
+        appPkgNameLabel.setFont(new Font("", Font.PLAIN, 22));
         // 初始化表格
         table = new JTable();
         table.getTableHeader().setFont(new Font("楷体", Font.PLAIN, 22));
