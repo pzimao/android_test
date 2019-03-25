@@ -1,11 +1,8 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DBUtil;
 import cn.edu.uestc.utils.DeviceUtil;
 import cn.edu.uestc.utils.TcpdumpUtil;
-import com.android.chimpchat.adb.AdbBackend;
 import com.android.chimpchat.core.IChimpDevice;
-import com.android.ddmlib.DdmPreferences;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 

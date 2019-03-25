@@ -31,22 +31,7 @@ public class MyJFrame extends JFrame {
         InitialComponent();
         arrayList = new ArrayList<>();
 
-        arrayList.add("写字楼里写字间");
-        arrayList.add("写字间里程序员");
-        arrayList.add("程序人员写程序");
-        arrayList.add("又拿程序换酒钱");
-        arrayList.add("酒醒只在网上坐");
-        arrayList.add("酒醉还来网下眠");
-        arrayList.add("酒醉酒醒日复日");
-        arrayList.add("网上网下年复年");
-        arrayList.add("但愿老死电脑间");
-        arrayList.add("不愿鞠躬老板前");
-        arrayList.add("奔驰宝马贵者趣");
-        arrayList.add("公交自行程序员");
-        arrayList.add("别人笑我太疯癫");
-        arrayList.add("我笑自己命太贱");
-        arrayList.add("不见满街漂亮妹");
-        arrayList.add("哪个归得程序员");
+        arrayList.add("域名标注");
     }
 
     private void InitialComponent() {
