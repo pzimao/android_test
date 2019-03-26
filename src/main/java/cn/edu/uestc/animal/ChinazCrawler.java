@@ -17,15 +17,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChinazCrawler {
-    private HttpClient httpClient = HttpClients.createMinimal();
-    private HttpGet httpGet = new HttpGet();
-    private Pattern pattern = Pattern.compile("网站名称</span><p>(.*)</p></li>");
-    private String baseUrl = "http://icp.chinaz.com/";
+    private static HttpClient httpClient = HttpClients.createMinimal();
+    private static HttpGet httpGet = new HttpGet();
+    private static Pattern pattern = Pattern.compile("网站名称</span><p>(.*)</p></li>");
+    private static String baseUrl = "http://icp.chinaz.com/";
 
-    public ChinazCrawler() {
-    }
 
-    public String getNameByDomain(String domain) {
+    public static String getNameByDomain(String domain) {
         httpGet.setURI(URI.create(baseUrl + domain));
         try {
             HttpResponse response = httpClient.execute(httpGet);
@@ -41,13 +39,14 @@ public class ChinazCrawler {
         return "未知";
     }
 
+    private ChinazCrawler() {
+    }
+
     public static void main(String[] args) throws Exception {
         ChinazCrawler chinazCrawler = new ChinazCrawler();
         Connection connection = DBUtil.getCon();
         String querySql = "select domain from domain where domain_desc is null";
         String updateSql = "update domain set domain_desc= ? where domain = ?";
-        PreparedStatement queryStatement = connection.prepareStatement(querySql);
-        PreparedStatement updateStatement = connection.prepareStatement(updateSql);
         ResultSet resultSet = (ResultSet) DBUtil.execute(querySql);
         while (resultSet.next()) {
             // 域名

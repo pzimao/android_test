@@ -1,5 +1,6 @@
 package cn.edu.uestc.utils;
 
+import cn.edu.uestc.animal.ChinazCrawler;
 import com.android.chimpchat.core.IChimpDevice;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -61,7 +62,7 @@ public class TcpdumpUtil extends Thread {
             // 获取到APP id
             String sql0 = "select id from app where actual_pkg_name = ?";
             String sql1 = "select * from domain where domain = ?";
-            String sql2 = "INSERT INTO `domain` (`domain`) VALUES (?)";
+            String sql2 = "INSERT INTO `domain` (`domain`, `domain_desc`) VALUES (?, ?)";
             String sql3 = "insert into app_domain(app_id, domain) values(? ,?)";
 
 
@@ -75,7 +76,10 @@ public class TcpdumpUtil extends Thread {
                 // 检查domain表
                 if (!((ResultSet) DBUtil.execute(sql1, domain)).next()) {
                     // domain表不包含这个域名，则添加
-                    DBUtil.execute(sql2, domain);
+                    // 先爬取域名备案
+                    String domain_desc = ChinazCrawler.getNameByDomain(domain);
+                    DBUtil.execute(sql2, domain, domain_desc);
+                    logger.info("发现新域名 " + domain + " " + domain_desc);
                 }
                 DBUtil.execute(sql3, String.valueOf(appId), domain);
             }

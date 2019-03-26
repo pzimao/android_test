@@ -31,7 +31,9 @@ public class MyJFrame extends JFrame {
         InitialComponent();
         arrayList = new ArrayList<>();
 
-        arrayList.add("域名标注");
+        arrayList.add("写字楼里写字间,写字间里程序员;");
+        arrayList.add("程序人员写程序,又拿程序换酒钱;");
+        arrayList.add("酒醒只在网上坐,酒醉还来网下眠;");
     }
 
     private void InitialComponent() {

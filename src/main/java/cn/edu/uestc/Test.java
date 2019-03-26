@@ -1,5 +1,7 @@
 package cn.edu.uestc;
 
+import cn.edu.uestc.animal.ChinazCrawler;
+
 import java.util.Random;
 
 public class Test {
