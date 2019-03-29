@@ -4,13 +4,10 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Properties;
 
 public class DBUtil {
     private static Connection connection = null;
-//	private static ResultSet rs=null;
-//	private static PreparedStatement ps=null;
 
     private static String url = "";
     private static String drivername = "";

@@ -20,7 +20,7 @@ public class Monkey {
     }
 
     public void play() {
-        final Logger logger = LogManager.getLogger("tester");
+        final Logger logger = LogManager.getLogger("Monkey");
         HashSet<String> whiteSet = new HashSet<>();
         // todo 是否需要过滤已经安装的app？
 //        Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(device.shell("pm list package -3"));
@@ -35,8 +35,8 @@ public class Monkey {
             try {
                 Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(device.shell("pm list package -3"));
                 while (matcher.find()) {
-
                     String packageName = matcher.group().trim();
+                    logger.info("当前测试的APP包名: " + packageName);
                     if (!whiteSet.contains(packageName)) {
                         logger.info("开始抓" + packageName + "的数据包");
                         new TcpdumpUtil(device, packageName).start();
@@ -72,7 +72,7 @@ public class Monkey {
 
                         // 移除已经测试过的APK文件。
                         whiteSet.add(packageName);
-                        logger.info("测试完成");
+                        logger.info("测试完成 " + packageName);
                         // todo 这里可以有两种方式卸载APP
                         // 1. 通过Java。runtime exec 直接执行cmd命令
                         // 2. device removePackage
@@ -98,6 +98,7 @@ public class Monkey {
                 // 重启设备
                 // todo 验证是否起作用
                 // todo 2019-3-21 22点04分 这个reboot 似乎没起作用
+                e.printStackTrace();
                 device.reboot(null);
                 logger.info("设备重启了");
                 try {

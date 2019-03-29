@@ -22,8 +22,6 @@ public class MyJFrame extends JFrame {
     private JTextField appPkgNameLabel;
     private JPanel panel;
     private JTable table;
-    private JButton btn;
-    private JScrollPane scrollpane;
     private JLabel footLabel;
     private ArrayList<String> arrayList;
 
@@ -31,16 +29,14 @@ public class MyJFrame extends JFrame {
         InitialComponent();
         arrayList = new ArrayList<>();
 
-        arrayList.add("写字楼里写字间,写字间里程序员;");
-        arrayList.add("程序人员写程序,又拿程序换酒钱;");
-        arrayList.add("酒醒只在网上坐,酒醉还来网下眠;");
+        arrayList.add("域名标注程序");
     }
 
     private void InitialComponent() {
 
         setLayout(null);
         setSize(1000, 820);
-//        setSize(1000, 870);
+        //setSize(1000, 870);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -56,7 +52,7 @@ public class MyJFrame extends JFrame {
         appPkgNameLabel = new JTextField();
         appPkgNameLabel.setSize(500, 40);
         appPkgNameLabel.setLocation(280, 10);
-        btn = new JButton("下一组");
+        JButton btn = new JButton("下一组");
         btn.setSize(160, 40);
         btn.setLocation(800, 10);
 
@@ -69,7 +65,7 @@ public class MyJFrame extends JFrame {
 //        table.setFont(new Font("", Font.PLAIN, 22));
         table.setRowHeight(28);
         table.setFont(new Font("", Font.PLAIN, 22));
-        scrollpane = new JScrollPane(table);
+        JScrollPane scrollpane = new JScrollPane(table);
         scrollpane.setSize(new Dimension(950, 700));
         scrollpane.setLocation(20, 60);
 

@@ -1,5 +1,6 @@
 package cn.edu.uestc.thread;
 
+import cn.edu.uestc.utils.APKUtil;
 import cn.edu.uestc.utils.DBUtil;
 import org.apache.http.*;
 import org.apache.http.client.RedirectStrategy;
@@ -30,12 +31,10 @@ public class DownloadThread extends Thread {
     private static long maxDownloadApkFileSize;
     private static long minDownloadApkFileSize;
     private static String appFolder = "";
-    private static Logger cLogger;
-    private static SimpleDateFormat sdf;
     private static String userAgent;
 
     static {
-        cLogger = LogManager.getLogger("下载线程类");
+        Logger cLogger = LogManager.getLogger("下载线程类");
 
         taskMap = new ConcurrentHashMap();
 
@@ -53,7 +52,7 @@ public class DownloadThread extends Thread {
         maxDownloadApkFileSize = Long.valueOf(properties.getProperty("maxDownloadApkFileSize"));
         minDownloadApkFileSize = Long.valueOf(properties.getProperty("minDownloadApkFileSize"));
         cLogger.info("本地APK位置: " + appFolder + " 最大:" + maxDownloadApkFileSize / 1024 / 1024 + "MB 最小:" + minDownloadApkFileSize / 1024 / 1024 + "MB");
-        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.151 Safari/535.19";
     }
 
@@ -96,25 +95,24 @@ public class DownloadThread extends Thread {
         HttpGet httpGet = new HttpGet();
         CloseableHttpResponse httpResponse = null;
         // 从数据库读取下载链接
-        boolean taskFlag = true;
-        while (taskFlag) {
-            taskFlag = false;
+        boolean flag = true;
+        while (flag) {
+            flag = false;
+            String sql1 = "select id, app_name, dl_url from app where dl_state != 1 and dl_url is not null and id < 184398";
+            String sql2 = "update app set dl_state = ?, actual_pkg_name = ? where id = ?";
+            String sql3 = "update app set dl_state = ? where id = ?";
+            ResultSet resultSet = (ResultSet) DBUtil.execute(sql1);
             try {
-                String sql1 = "select id, app_name, dl_url from app where dl_state != 1 and dl_url is not null and id < 184398";
-                String sql2 = "update app set dl_state = ? where id = ?";
-                ResultSet resultSet = (ResultSet) DBUtil.execute(sql1);
                 dl:
                 while (resultSet.next()) {
+                    flag = true;
                     int id = resultSet.getInt(1);
                     String appName = resultSet.getString(2);
                     String url = resultSet.getString(3); // APP下载链接
-//                    logger.info(url);
                     if (taskMap.putIfAbsent(id, threadId) != null) {
                         // 其他线程正在下载这个APP
                         continue;
                     }
-                    // 置标志
-                    taskFlag = true;
 
                     // 检查是否有未释放的资源
                     // 如果有，则释放。
@@ -125,7 +123,7 @@ public class DownloadThread extends Thread {
                     // 在setURI之前，检查下载地址
                     // 如果下载地址无效，直接把结果写入数据库
                     if (!(url.contains("http:") || url.contains("https:"))) {
-                        DBUtil.execute(sql2, "-1", String.valueOf(id));
+                        DBUtil.execute(sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -139,7 +137,7 @@ public class DownloadThread extends Thread {
                         e.printStackTrace();
                         logger.warn("执行GET请求时出错");
                         // 更新数据库
-                        DBUtil.execute(sql2, "-1", String.valueOf(id));
+                        DBUtil.execute(sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -152,7 +150,7 @@ public class DownloadThread extends Thread {
                         Header[] headers = httpResponse.getHeaders("Location");
                         if (headers == null || headers.length <= 0) {
                             // 会有这种问题吗？
-                            DBUtil.execute(sql2, "-1", String.valueOf(id));
+                            DBUtil.execute(sql3, "-1", String.valueOf(id));
                             // 继续下载其他APP
                             continue dl;
                         }
@@ -170,7 +168,7 @@ public class DownloadThread extends Thread {
                             e.printStackTrace();
                             logger.warn("执行GET请求时出错");
                             // 更新数据库
-                            DBUtil.execute(sql2, "-1", String.valueOf(id));
+                            DBUtil.execute(sql3, "-1", String.valueOf(id));
                             continue dl;
                         }
 
@@ -178,7 +176,7 @@ public class DownloadThread extends Thread {
                     }
 
                     if (statusCode != HttpStatus.SC_OK) {
-                        DBUtil.execute(sql2, "-1", String.valueOf(id));
+                        DBUtil.execute(sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -186,39 +184,44 @@ public class DownloadThread extends Thread {
 
                     if (apkLength > maxDownloadApkFileSize || apkLength < minDownloadApkFileSize) {
                         logger.info(appName + ":" + apkLength + "字节:文件太大或太小,跳过");
-                        DBUtil.execute(sql2, "2", String.valueOf(id));
+                        DBUtil.execute(sql3, "2", String.valueOf(id));
                         continue;
                     }
                     logger.info(appName + ":" + apkLength + "字节:开始下载");
 
-                    File xml = new File(appFolder + id + "_" + appName + ".tmp");
+                    File xml = new File(appFolder + id);
                     FileOutputStream outputStream = new FileOutputStream(xml);
 
                     InputStream inputStream = httpResponse.getEntity().getContent();
                     byte[] buff = new byte[1024 * 1024];
                     int counts;
                     long dSize = 0;
+                    String appPackageName = "";
                     try {
                         while ((counts = inputStream.read(buff)) != -1) {
                             outputStream.write(buff, 0, counts);
                             // 生成进度条
                             this.percent = getProgress(dSize += counts, apkLength);
                         }
+                        inputStream.close();
                         outputStream.flush();
                         outputStream.close();
+                        // 获取文件包名
+                        appPackageName = APKUtil.getApkPackageName(xml.getAbsolutePath());
                         // 改名
+                        logger.info(id + " 号文件的包名: " + appPackageName);
                         xml.renameTo(new File(appFolder + id + "_" + appName + ".apk"));
                     } catch (Exception e) {
                         logger.warn("下载出错");
                         xml.delete();
-                        DBUtil.execute(sql2, "-1", String.valueOf(id));
+                        DBUtil.execute(sql3, "-1", String.valueOf(id));
                         httpGet.releaseConnection();
                         continue;
                     }
 
                     httpGet.releaseConnection();
                     logger.info(appName + ":下载完成");
-                    DBUtil.execute(sql2, "1", String.valueOf(id));
+                    DBUtil.execute(sql2, "1", appPackageName, String.valueOf(id));
 
                     this.percent = "";
                 }

@@ -30,7 +30,7 @@ public class FileRewrite {
             if (matcher.find()) {
                 packageName = matcher.group(0);
             }
-            String content = line.split(packageName)[1].strip();
+            String content = line.split(packageName)[1].trim();
             if (resultMap.containsKey(packageName)) {
                 resultMap.get(packageName).add(content);
             } else {
@@ -71,7 +71,7 @@ public class FileRewrite {
             String[] fieldArray = line.split("\t");
             String appName = fieldArray[0];
             String packageName = fieldArray[1];
-            String url = fieldArray[2].strip();
+            String url = fieldArray[2].trim();
 
             // 在这里进行处理
             if (resultMap.containsKey(packageName)) {
