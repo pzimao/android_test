@@ -11,7 +11,7 @@
  Target Server Version : 50723
  File Encoding         : 65001
 
- Date: 29/03/2019 14:26:20
+ Date: 01/04/2019 14:09:11
 */
 
 SET NAMES utf8mb4;
@@ -23,11 +23,13 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `app`;
 CREATE TABLE `app`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `original_id` int(10) NULL DEFAULT NULL,
   `app_name` varchar(127) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `provided_pkg_name` varchar(127) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `actual_pkg_name` varchar(127) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `dl_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `dl_state` int(10) NOT NULL DEFAULT 0 COMMENT 'APK文件下载状态:\r\n0 未下载；\r\n-1 下载出错；\r\n1 下载完成；\r\n2 跳过大文件；',
+  `app_from` int(2) NULL DEFAULT NULL COMMENT '此记录来源',
   `desc` varchar(127) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '通过包名分析出的信息',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 190556 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
@@ -69,6 +71,30 @@ CREATE TABLE `app_info`  (
   `appID` varchar(11) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 46576 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for app_info2
+-- ----------------------------
+DROP TABLE IF EXISTS `app_info2`;
+CREATE TABLE `app_info2`  (
+  `id` int(10) NOT NULL,
+  `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  `pkg_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  `dl_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  `app_desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for app_info3
+-- ----------------------------
+DROP TABLE IF EXISTS `app_info3`;
+CREATE TABLE `app_info3`  (
+  `id` int(10) NOT NULL,
+  `dl_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  `desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for domain
@@ -157,6 +183,17 @@ CREATE TRIGGER `synAppInfo` AFTER INSERT ON `app_info` FOR EACH ROW begin
 		set @var = replace(@var,'>','#');
 		set @var = replace(@var,'|','#');
     insert into app (id, app.app_name, app.provided_pkg_name, app.dl_url) values (new.id, @var, new.packagename, new.dl_url);
+end
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table app_info2
+-- ----------------------------
+DROP TRIGGER IF EXISTS `synTriger`;
+delimiter ;;
+CREATE TRIGGER `synTriger` AFTER INSERT ON `app_info2` FOR EACH ROW begin
+    insert into app (id, original_id, app.app_name, app.provided_pkg_name, app.dl_url, app_from) values (new.id, new.id, new.app_name, new.pkg_name, new.dl_url, 2);
 end
 ;;
 delimiter ;

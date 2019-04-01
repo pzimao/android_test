@@ -20,6 +20,9 @@ public class APKUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (apkPackageName == null) {
+            return "";
+        }
         apkPackageName = apkPackageName.substring(apkPackageName.indexOf('\'') + 1);
         apkPackageName = apkPackageName.substring(0, apkPackageName.indexOf('\''));
         return apkPackageName;
@@ -27,21 +30,21 @@ public class APKUtil {
 
     public static void main(String[] args) {
         File fileFolder = new File("d:/app_test");
-        String sql = "UPDATE `app_db`.`app` SET `actual_pkg_name` = ? WHERE `id` = ?";
-        Arrays.asList(fileFolder.listFiles((file) -> file.getName().endsWith(".apk"))).forEach(file -> {
+        String sql = "UPDATE `app_db`.`app` SET `actual_pkg_name` = ?, dl_state = 1 WHERE `id` = ?";
+        Arrays.asList(fileFolder.listFiles()).forEach(file -> {
             String originName = file.getAbsolutePath();
             String appId = file.getName().split("_")[0];
-            if (Integer.valueOf(appId) > 156935) {
-//            System.out.println(appId + "\t" + originName.substring(0, originName.lastIndexOf('_')));
-                file.renameTo(new File(originName.substring(0, originName.lastIndexOf('_'))));
-                String packageName = getApkPackageName(originName.substring(0, originName.lastIndexOf('_')));
-                System.out.println(appId + "\t" + packageName);
-                // 文件名改回去
-                file.renameTo(new File(originName));
-                // 更新包名
-                DBUtil.execute(sql, packageName, appId);
-            }
+            String packageName = getApkPackageName(originName);
+            System.out.println(appId + "\t" + packageName);
+            DBUtil.execute(sql, packageName, appId);
         });
+//        Arrays.asList(fileFolder.listFiles()).forEach(file -> {
+//            System.out.println(file.getName());
+//            String packageName = getApkPackageName(file.getAbsolutePath());
+//            if ("".equals(packageName)) {
+//                System.out.println(file.getName() + "\t" + file.delete());
+//            }
+//        });
 
     }
 }

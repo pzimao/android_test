@@ -36,8 +36,9 @@ public class Monkey {
                 Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(device.shell("pm list package -3"));
                 while (matcher.find()) {
                     String packageName = matcher.group().trim();
-                    logger.info("当前测试的APP包名: " + packageName);
+
                     if (!whiteSet.contains(packageName)) {
+                        logger.info("当前测试的APP包名: " + packageName);
                         logger.info("开始抓" + packageName + "的数据包");
                         new TcpdumpUtil(device, packageName).start();
                         logger.info("开始测试: " + packageName);
@@ -90,7 +91,7 @@ public class Monkey {
                 }
                 try {
                     // todo 2-26 设置轮回时间
-                    Thread.sleep(10 * 1000);
+                    Thread.sleep(3 * 1000);
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }

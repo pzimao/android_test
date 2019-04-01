@@ -142,7 +142,7 @@ public class MyJFrame extends JFrame {
 
 
     public int updateTable() {
-        String sql = "select * from view_table1 where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from view_table1) limit 20, 1) as t)";
+        String sql = "select * from `视图1_所有域名` where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from `视图1_所有域名`) limit 1) as t)";
         ResultSet resultSet = (ResultSet) DBUtil.execute(sql);
 
         ArrayList<String[]> list = new ArrayList<>();

@@ -11,20 +11,27 @@ public class DataTransfer {
 
     public static void txtToApp() throws Exception {
         Connection connection = DBUtil.getCon();
-        String sql = "INSERT INTO `app_db`.`app`(`id`, `app_name`, `provided_pkg_name`) VALUES (? , ?, ?)";
+        String sql = "INSERT INTO `app_db`.`app_info2`(`id`, `app_name`, `pkg_name`, dl_url) VALUES (? , ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        File file = new File("C:\\Users\\pzima\\Desktop\\APP_test_project\\3-18\\APP.txt");
+        File file = new File("C:\\Users\\pzima\\Desktop\\android_test\\src\\main\\resources\\part_100.txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
         String line = br.readLine();
         while (line != null) {
             String[] array = line.split("\t");
             String appId = array[0];
-            String appName = array[1];
+            String appName = FileNameFilter.filter(array[1]);
             String appPackageName = array[2];
-
+            String dlUrl = "";
+            if (array.length > 4) {
+                dlUrl = array[4];
+            }
+            if ("-1".equals(dlUrl)) {
+                dlUrl = "";
+            }
             preparedStatement.setInt(1, Integer.valueOf(appId));
             preparedStatement.setString(2, appName);
             preparedStatement.setString(3, appPackageName);
+            preparedStatement.setString(4, dlUrl);
             preparedStatement.addBatch();
             line = br.readLine();
         }
@@ -192,12 +199,12 @@ public class DataTransfer {
     }
 
     public static void main(String[] args) throws Exception {
-//        txtToApp();
+        txtToApp();
 //        appInfoToApp();
 //        appDlToApp();
 //        appDomainToDomain();
 //        appDomainToTemp();
 //        apkRename();
-        test();
+//        test();
     }
 }
