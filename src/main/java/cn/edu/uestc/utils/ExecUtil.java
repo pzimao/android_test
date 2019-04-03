@@ -34,10 +34,10 @@ public class ExecUtil {
             InputStreamReader isr = new InputStreamReader(fis);
             //用缓冲器读行
             BufferedReader br = new BufferedReader(isr);
-            String line = null;
+            String line = "";
             //直到读完为止
             while ((line = br.readLine()) != null) {
-                result += line;
+                result += (line + "\n");
             }
             br.close();
             isr.close();
@@ -47,7 +47,7 @@ public class ExecUtil {
             e.printStackTrace();
         }
         result = result.trim();
-        logger.info("执行[ " + command + " ]结果: " + result);
+//        logger.info("执行[ " + command + " ]结果: " + result);
         return result;
     }
 }

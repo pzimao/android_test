@@ -1,37 +1,38 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.APKUtil;
-import cn.edu.uestc.utils.DBUtil;
+import cn.edu.uestc.utils.DeviceManager;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class Test {
 
-    public static void main(String[] args) {
-        String str = "";
-        char[] charArray = str.toCharArray();
-        boolean is1NumReady = false; // 第一个操作数准备好了吗
-        boolean opFlag = true;
-        while (opFlag) {
-            opFlag = false;
-            for (int i = 0; i < charArray.length; i++) {
-                char c = charArray[i];
-                if (c == '*' || c == '/' || c == '+' || c == '-') {
-                    // 寻找前后两个操作数
-                    int number1 = 0;
-                    int number2 = 0;
-                    char c1 = charArray[i - 1];
-                    for (int i1 = i-1;i1 >= 0;i1--) {
-
-                    }
-                    while (c1 >= '0' && c1 <= '9') {
-                        number1 = Integer.valueOf(c1) * 10 + number1;
-                    }
-                }
+    // 得到网页源码
+    public static String getHtml(String urlString) {
+        try {
+            StringBuffer html = new StringBuffer();
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            InputStreamReader isr = new InputStreamReader(conn.getInputStream());
+            BufferedReader br = new BufferedReader(isr);
+            String temp;
+            while ((temp = br.readLine()) != null) {
+                html.append(temp).append("\n");
             }
+            br.close();
+            isr.close();
+            return html.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
+    }
+
+
+    public static void main(String[] args) {
+
+        DeviceManager.startEmulatorProcess();
     }
 }

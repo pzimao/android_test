@@ -1,11 +1,12 @@
 package cn.edu.uestc;
 
 import cn.edu.uestc.animal.Monkey;
-import cn.edu.uestc.thread.AppInstallThread;
+import cn.edu.uestc.utils.DeviceManager;
 
 public class AutoTest {
     public static void main(String[] args) {
-        new AppInstallThread().start();
+        DeviceManager.work();
+//        new AppInstallThread().start();
         new Monkey().play(false);
     }
 }

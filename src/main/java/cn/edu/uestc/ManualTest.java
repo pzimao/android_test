@@ -1,8 +1,8 @@
 package cn.edu.uestc;
 
 import cn.edu.uestc.utils.DeviceManager;
+import cn.edu.uestc.utils.ExecUtil;
 import cn.edu.uestc.utils.TcpdumpUtil;
-import com.android.chimpchat.core.IChimpDevice;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -17,14 +17,14 @@ public class ManualTest {
         final Logger logger = LogManager.getLogger("manual test: ");
         HashSet<String> whiteSet = new HashSet<>();
         // 排除已经安装的app
-        Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(DeviceManager.getDevice().shell("pm list package -3"));
+        Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
         while (matcher0.find()) {
             String packageName = matcher0.group();
             whiteSet.add(packageName);
         }
         while (true) {
             try {
-                Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(DeviceManager.getDevice().shell("pm list package -3"));
+                Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
                 while (matcher.find()) {
 
                     String packageName = matcher.group().trim();
@@ -40,13 +40,13 @@ public class ManualTest {
                         new Scanner(System.in).next();
 
                         logger.info("【" + packageName+"】" + "结束测试");
-                        DeviceManager.getDevice().removePackage(packageName);
+                        ExecUtil.exec("adb remove " + packageName);
                         logger.info("【" + packageName+"】" + "已经被卸载了");
-                        String pids = DeviceManager.getDevice().shell("pidof tcpdump").trim();
+                        String pids = ExecUtil.exec("adb shell pidof tcpdump").trim();
                         Matcher pidMatcher = Pattern.compile("\\d+").matcher(pids);
                         while (pidMatcher.find()) {
                             String pid = pidMatcher.group();
-                            DeviceManager.getDevice().shell("kill " + pid);
+                            ExecUtil.exec("adb shell kill " + pid);
                             logger.info("kill抓包进程");
                         }
                     }

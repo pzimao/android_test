@@ -66,7 +66,7 @@ public class TcpdumpUtil extends Thread {
 
         String packageContent = "";
         try {
-            packageContent = DeviceManager.getDevice().shell("/data/local/tcpdump -i any port 53 -s 0");
+            packageContent = ExecUtil.exec("adb shell /data/local/tcpdump -i any port 53 -s 0");
         } catch (Exception e) {
             packageContent = "";
         }

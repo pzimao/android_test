@@ -1,16 +1,14 @@
 package cn.edu.uestc.utils;
 
 import cn.edu.uestc.thread.DownloadThread;
-import com.android.chimpchat.adb.AdbBackend;
-import com.android.chimpchat.core.IChimpDevice;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.DdmPreferences;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
 
 public class DeviceManager {
 
@@ -18,8 +16,7 @@ public class DeviceManager {
     private static String emulatorPath;
     private static String emulatorProcessName;
     private static Logger logger = LogManager.getLogger("设备管理线程");
-    public static IChimpDevice device;
-    public static volatile boolean rebootRequested = false;
+    public static volatile boolean isStarted = false;
 
     private DeviceManager() {
     }
@@ -40,6 +37,9 @@ public class DeviceManager {
         emulatorProcessName = properties.getProperty("processName");
         deviceId = properties.getProperty("deviceId");
         long deviceStateCheckPeriod = Long.valueOf(properties.getProperty("deviceStateCheckPeriod"));
+        long installThreadCheckPeriod = Long.valueOf(properties.getProperty("installThreadCheckPeriod"));
+        long installThreadTimeout = Long.valueOf(properties.getProperty("installThreadTimeout"));
+        long monkeyThreadCheckPeriod = Long.valueOf(properties.getProperty("monkeyThreadCheckPeriod"));
         logger.info("模拟器位置: " + emulatorPath);
 
         // 设置监视器，定时检查模拟器状态
@@ -47,31 +47,45 @@ public class DeviceManager {
             @Override
             public void run() {
                 // 检查是否需要重启设备
-                if (rebootRequested) {
-                    logger.info("重启模拟器");
-                    restartEmulator();
-                    DeviceManager.rebootRequested = false;
-                } else {
-                    logger.info("模拟器正常运行");
+
+                // 检查网络
+                final Exchanger<String> exchanger = new Exchanger<>();
+                new Thread(() -> {
+                    try {
+                        exchanger.exchange(ExecUtil.exec("adb shell ping -c 1 baidu.com"));
+                    } catch (Exception e) {
+                    }
+                }).start();
+                String resultString = "";
+                try {
+                    // 如果30秒内收不到ping的结果，就认为网络状况异常
+                    resultString = exchanger.exchange("", 30, TimeUnit.SECONDS);
+                } catch (Exception e) {
                 }
+
+                if ("".equals(resultString) || resultString.contains("unknown")) {
+                    logger.info("模拟器网络异常，准备重启模拟器");
+                    // 下次检查时重启
+                    isStarted = false;
+                } else {
+                    logger.info("模拟器网络正常");
+                }
+
+                // todo 检查安装线程状态, 现在的思路是检查现有的APP里是否有新安装的
+
+                if (!isStarted) {
+                    restartEmulator();
+                    logger.info("重启模拟器");
+                }
+
             }
         };
         new Timer().schedule(timerTask, 50000, deviceStateCheckPeriod);
     }
 
-    // 模拟器启动之后，调用这个方法得到设备对象
-    // 这个方法需要同步
-    public synchronized static IChimpDevice getDevice() {
-        if (device == null) {
-            // 重新启动模拟器
-            restartEmulator();
 
-            // 获取device 对象
-            AndroidDebugBridge.terminate();
-            device = new AdbBackend().waitForConnection(1000000, deviceId);
-            DdmPreferences.setTimeOut(500000);
-        }
-        return device;
+    public static void work() {
+        restartEmulator();
     }
 
     public static void restartEmulator() {
@@ -90,7 +104,7 @@ public class DeviceManager {
         while (!ExecUtil.exec("adb connect " + deviceId).contains("connected")) {
             logger.info("尝试连接到 " + deviceId);
             try {
-                Thread.sleep(3000);
+                Thread.sleep(10000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -100,10 +114,11 @@ public class DeviceManager {
             logger.info("测试连接...");
             if (ExecUtil.exec("adb shell echo hello, Zimao Pang").contains("Zimao")) {
                 logger.info("模拟器启动了");
+                isStarted = true;
                 return true;
             }
             try {
-                Thread.sleep(6000);
+                Thread.sleep(10000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -154,8 +169,6 @@ public class DeviceManager {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            // 把设备引用指向空
-            device = null;
             // 关流
             try {
                 if (out != null) {
