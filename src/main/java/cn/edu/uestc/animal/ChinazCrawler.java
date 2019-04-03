@@ -7,11 +7,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +23,7 @@ public class ChinazCrawler {
     private static HttpGet httpGet = new HttpGet();
     private static Pattern pattern = Pattern.compile("网站名称</span><p>(.*)</p></li>");
     private static String baseUrl = "http://icp.chinaz.com/";
-
+    private static Logger logger = LogManager.getLogger("ChinazCrawler");
 
     public static String getNameByDomain(String domain) {
         httpGet.setURI(URI.create(baseUrl + domain));
@@ -32,8 +34,10 @@ public class ChinazCrawler {
             while (matcher.find()) {
                 return matcher.group(1);
             }
+        } catch (UnknownHostException e) {
+            logger.warn("请检查主机网络状况");
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             httpGet.reset();
         }
         return "未知";

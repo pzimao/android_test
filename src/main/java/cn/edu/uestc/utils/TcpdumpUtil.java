@@ -1,7 +1,6 @@
 package cn.edu.uestc.utils;
 
 import cn.edu.uestc.animal.ChinazCrawler;
-import com.android.chimpchat.core.IChimpDevice;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -11,14 +10,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TcpdumpUtil extends Thread {
-    private IChimpDevice device;
     private String packageName;
-    final Logger logger;
+    private final Logger logger;
     private ArrayList<Integer> appIdList = new ArrayList<>();
 
-    public TcpdumpUtil(IChimpDevice device, String packageName) {
+    public TcpdumpUtil(String packageName) {
         logger = LogManager.getLogger("Tcpdump");
-        this.device = device;
         this.packageName = packageName;
         // 把获取APP id 的过程放在了构造方法里
         String sql0 = "select id from app where actual_pkg_name = ?";
@@ -64,9 +61,15 @@ public class TcpdumpUtil extends Thread {
     }
 
     // 捕获请求包和响应包
-    public String[] capturePacket() {
+    private String[] capturePacket() {
         logger.info(packageName + ":启动抓包线程");
-        String packageContent = device.shell("/data/local/tcpdump -i any port 53 -s 0");
+
+        String packageContent = "";
+        try {
+            packageContent = DeviceManager.getDevice().shell("/data/local/tcpdump -i any port 53 -s 0");
+        } catch (Exception e) {
+            packageContent = "";
+        }
         String[] packetArray = packageContent.split("\n");
         logger.info(packageName + ":抓到的包数量: " + packetArray.length);
         return packetArray;
@@ -75,7 +78,7 @@ public class TcpdumpUtil extends Thread {
     /*
      解析请求包 这里不做去重。因为我认为同一个域名，请求序列号不一样时，得到的响应也可能不一样。
      */
-    public LinkedHashMap<Integer, String> parseRequestPacket(ArrayList<String> requestPacketArray) {
+    private LinkedHashMap<Integer, String> parseRequestPacket(ArrayList<String> requestPacketArray) {
         // 用来存储请求序号和请求域名
         LinkedHashMap<Integer, String> requestMap = new LinkedHashMap<>();
         Pattern pattern = Pattern.compile("(\\d+)\\+\\sA\\?\\s(([0-9a-z-]+\\.)+[0-9a-z-]+)\\.");
@@ -92,7 +95,7 @@ public class TcpdumpUtil extends Thread {
     }
 
     // 解析响应包
-    public HashMap<Integer, ArrayList<ArrayList<String>>> parseResponsePacket(ArrayList<String> responsePacketArray) {
+    private HashMap<Integer, ArrayList<ArrayList<String>>> parseResponsePacket(ArrayList<String> responsePacketArray) {
         Pattern patternSequence = Pattern.compile(":\\s(\\d+)");
         Pattern patternCname = Pattern.compile("CNAME\\s(([0-9a-z-]+\\.)+[0-9a-z-]+)\\.");
         Pattern patternA = Pattern.compile("\\sA\\s((\\d+\\.)+\\d+)");
@@ -123,7 +126,7 @@ public class TcpdumpUtil extends Thread {
     }
 
 
-    public void saveDomain(LinkedHashMap<Integer, String> requestMap, HashMap<Integer, ArrayList<ArrayList<String>>> responseMap) {
+    private void saveDomain(LinkedHashMap<Integer, String> requestMap, HashMap<Integer, ArrayList<ArrayList<String>>> responseMap) {
         // 存储app-域名信息
         HashSet<String> domainSet = saveAppDomain(requestMap);
 
@@ -169,7 +172,7 @@ public class TcpdumpUtil extends Thread {
 
     // 保存请求域名，域名去重操作也在这里
     // 返回的是保存到domain表的域名
-    public HashSet<String> saveAppDomain(LinkedHashMap<Integer, String> requestMap) {
+    private HashSet<String> saveAppDomain(LinkedHashMap<Integer, String> requestMap) {
         // 检查域名是否已存在
         String sql1 = "select * from domain where domain = ?";
         // 插入域名

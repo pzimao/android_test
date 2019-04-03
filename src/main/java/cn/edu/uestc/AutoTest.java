@@ -6,6 +6,6 @@ import cn.edu.uestc.thread.AppInstallThread;
 public class AutoTest {
     public static void main(String[] args) {
         new AppInstallThread().start();
-        new Monkey().play();
+        new Monkey().play(false);
     }
 }

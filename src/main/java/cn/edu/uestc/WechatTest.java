@@ -1,6 +1,6 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DeviceUtil;
+import cn.edu.uestc.utils.DeviceManager;
 import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.IChimpImage;
 import org.apache.log4j.LogManager;
@@ -16,7 +16,7 @@ public class WechatTest {
 
     public WechatTest() {
         // 初始化设备；
-        device = DeviceUtil.getDevice();
+        device = DeviceManager.getDevice();
         logger = LogManager.getLogger("wechat Tester");
     }
 
