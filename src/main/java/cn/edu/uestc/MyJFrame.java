@@ -13,7 +13,6 @@ import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Random;
 
 public class MyJFrame extends JFrame {
 
@@ -23,14 +22,12 @@ public class MyJFrame extends JFrame {
     private JPanel panel;
     private JTable table;
     private JLabel footLabel;
-    private ArrayList<String> arrayList;
     private int skipCount = 0;
+    private JButton submitButton;
+    private JButton skipButton;
 
     public MyJFrame() {
         InitialComponent();
-        arrayList = new ArrayList<>();
-
-        arrayList.add("域名标注程序");
     }
 
     private void InitialComponent() {
@@ -54,7 +51,7 @@ public class MyJFrame extends JFrame {
         appPkgNameLabel.setSize(450, 40);
         appPkgNameLabel.setLocation(330, 10);
 
-        JButton submitButton = new JButton("下一组");
+        submitButton = new JButton("下一组");
         submitButton.setSize(160, 40);
         submitButton.setLocation(800, 10);
 
@@ -72,47 +69,32 @@ public class MyJFrame extends JFrame {
         scrollpane.setLocation(20, 60);
 
 
-        // 按钮点击时显示当前选中项
+        // 提交submit按钮点击事件
         submitButton.addActionListener(new ActionListener() {
-            int tableRows = 0;
             String sql = "update app_domain set label = ? where app_id = ? and domain = ?";
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (tableRows != 0) {
-                    String appId = MyJFrame.super.getTitle();
-                    System.out.println(appId);
-                    HashSet<Integer> set = new HashSet<>();
-                    // tableRows 不包括最后一行
-                    for (int i = 0; i < tableRows; i++) {
-                        set.add(i);
-                    }
-                    System.out.println("一共 " + set.size() + " 个域名");
-                    int[] selectedRowIndexes = table.getSelectedRows();
-                    for (int rowIndex : selectedRowIndexes) {
-                        // 更新选择的域名
-                        String domain = table.getValueAt(rowIndex, 0).toString();
-                        if ("".equals(domain)) {
-                            break;
+                String appId = MyJFrame.super.getTitle();
+                System.out.println(appId);
+                for (int i = 0, j = 0; i < table.getRowCount(); i++, j++) {
+                    if (j < table.getSelectedRows().length) {
+                        while (i < table.getSelectedRows()[j]) {
+                            DBUtil.execute(sql, "-1", appId, table.getValueAt(i, 0).toString());
+                            i++;
                         }
-                        DBUtil.execute(sql, "1", appId, domain);
-                        // 移除
-                        set.remove(rowIndex);
+                        DBUtil.execute(sql, "1", appId, table.getValueAt(i, 0).toString());
+                    } else {
+                        do {
+                            DBUtil.execute(sql, "-1", appId, table.getValueAt(i, 0).toString());
+                        } while (++i < table.getRowCount());
+                        break;
                     }
-                    System.out.println("标注了" + (tableRows - set.size()) + " 条");
-                    for (int rowIndex : set) {
-                        // 更新未选择的域名
-                        String domain = table.getValueAt(rowIndex, 0).toString();
-                        DBUtil.execute(sql, "-1", appId, domain);
-                    }
-                    System.out.println("排除了" + set.size() + " 条");
                 }
-
-                // 更新表格
-                tableRows = updateTable();
+                updateTable();
             }
         });
-        JButton skipButton = new JButton("跳过");
+        skipButton = new JButton("跳过");
         skipButton.setFont(new Font("楷体", Font.BOLD, 22));
         skipButton.setLocation(20, 10);
         skipButton.setSize(80, 40);
@@ -138,39 +120,47 @@ public class MyJFrame extends JFrame {
 
         this.add(panel);
         new Thread(() -> {
-            int i = 0;
-            Random random = new Random();
-            while (true) {
-                footLabel.setText(arrayList.get((i++) % arrayList.size()));
-                footLabel.setLocation(random.nextInt(780) + 20, 762);
-                try {
-                    Thread.sleep(5000);
-                } catch (Exception e) {
-                    System.out.println("睡觉也能异常？");
-                }
-            }
+
         }).start();
 
     }
 
 
-    public int updateTable() {
+    public ArrayList<String[]> updateTable() {
+
+        String preSql = "select domain, freq from (select domain, count(*) as freq from app_domain  GROUP BY domain) as t where freq > 80 ORDER BY freq desc ";
         String sql = "select * from `视图1_所有域名` where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from `视图1_所有域名`) limit " + skipCount + ", 1) as t)";
+        String updateSql = "update app_domain set label = ? where app_id = ? and domain = ?";
         ResultSet resultSet = (ResultSet) DBUtil.execute(sql);
 
+        // 需要在表格中显示的数据
         ArrayList<String[]> list = new ArrayList<>();
+        ArrayList<String[]> filteredList = new ArrayList<>();
         try {
+            ResultSet preResultSet = (ResultSet) DBUtil.execute(preSql);
+            HashSet<String> preSet = new HashSet<>();
+            while (preResultSet.next()) {
+                preSet.add(preResultSet.getString(1));
+            }
             while (resultSet.next()) {
                 String[] strings = new String[5];
                 for (int j = 0; j < 5; j++) {
                     strings[j] = resultSet.getString(j + 1);
                 }
-                list.add(strings);
+                // todo 2019-4-4 测试功能，频繁出现的域名从查询结果中排除
+                if (preSet.contains(strings[3])) {
+                    // 这条标-1
+                    DBUtil.execute(updateSql, "-1", strings[0], strings[3]);
+                    filteredList.add(strings);
+                    System.out.println("过滤 " + strings[3]);
+                } else {
+                    list.add(strings);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        list.add(new String[]{list.get(0)[0], list.get(0)[1], list.get(0)[2], "", "没有自己的域名"});
+
         Object[][] showDates = new Object[list.size()][];
         for (int i = 0; i < list.size(); i++) {
             String[] string = list.get(i);
@@ -201,10 +191,14 @@ public class MyJFrame extends JFrame {
 
         table.setSize(panel.getWidth(), panel.getHeight() - 90);
         table.setLocation(0, 0);
+        if (list.size() == 0) {
+            list = filteredList;
+        }
         this.setTitle(list.get(0)[0]);
         appNameLabel.setText(list.get(0)[1]);
         appPkgNameLabel.setText(list.get(0)[2]);
-        return list.size() - 1;
+
+        return filteredList;
     }
 
     public static void main(String[] args) {
