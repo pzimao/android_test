@@ -24,6 +24,7 @@ public class MyJFrame extends JFrame {
     private JTable table;
     private JLabel footLabel;
     private ArrayList<String> arrayList;
+    private int skipCount = 0;
 
     public MyJFrame() {
         InitialComponent();
@@ -47,16 +48,17 @@ public class MyJFrame extends JFrame {
         panel.setLayout(null);
 
         appNameLabel = new JTextField();
-        appNameLabel.setSize(250, 40);
-        appNameLabel.setLocation(20, 10);
+        appNameLabel.setSize(200, 40);
+        appNameLabel.setLocation(120, 10);
         appPkgNameLabel = new JTextField();
-        appPkgNameLabel.setSize(500, 40);
-        appPkgNameLabel.setLocation(280, 10);
-        JButton btn = new JButton("下一组");
-        btn.setSize(160, 40);
-        btn.setLocation(800, 10);
+        appPkgNameLabel.setSize(450, 40);
+        appPkgNameLabel.setLocation(330, 10);
 
-        btn.setFont(new Font("楷体", Font.BOLD, 22));
+        JButton submitButton = new JButton("下一组");
+        submitButton.setSize(160, 40);
+        submitButton.setLocation(800, 10);
+
+        submitButton.setFont(new Font("楷体", Font.BOLD, 22));
         appNameLabel.setFont(new Font("", Font.PLAIN, 22));
         appPkgNameLabel.setFont(new Font("", Font.PLAIN, 22));
         // 初始化表格
@@ -71,7 +73,7 @@ public class MyJFrame extends JFrame {
 
 
         // 按钮点击时显示当前选中项
-        btn.addActionListener(new ActionListener() {
+        submitButton.addActionListener(new ActionListener() {
             int tableRows = 0;
             String sql = "update app_domain set label = ? where app_id = ? and domain = ?";
 
@@ -110,15 +112,26 @@ public class MyJFrame extends JFrame {
                 tableRows = updateTable();
             }
         });
-
+        JButton skipButton = new JButton("跳过");
+        skipButton.setFont(new Font("楷体", Font.BOLD, 22));
+        skipButton.setLocation(20, 10);
+        skipButton.setSize(80, 40);
+        skipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                skipCount++;
+                updateTable();
+            }
+        });
         footLabel = new JLabel();
         footLabel.setSize(200, 14);
         footLabel.setLocation(20, 762);
         footLabel.setFont(new Font("楷体", Font.PLAIN, 12));
 
+        panel.add(skipButton);
         panel.add(appNameLabel);
         panel.add(appPkgNameLabel);
-        panel.add(btn);
+        panel.add(submitButton);
         panel.add(scrollpane);
         panel.add(footLabel);
 
@@ -142,7 +155,7 @@ public class MyJFrame extends JFrame {
 
 
     public int updateTable() {
-        String sql = "select * from `视图1_所有域名` where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from `视图1_所有域名`) limit 1) as t)";
+        String sql = "select * from `视图1_所有域名` where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from `视图1_所有域名`) limit " + skipCount + ", 1) as t)";
         ResultSet resultSet = (ResultSet) DBUtil.execute(sql);
 
         ArrayList<String[]> list = new ArrayList<>();
