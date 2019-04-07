@@ -27,14 +27,20 @@ public class MyJFrame extends JFrame {
     private JButton skipButton;
     private JTextField filterDegreeTextField;
 
+    private JLabel label1;
+    private JLabel label2;
+    private JLabel appIdLabel1;
+    private JLabel appIdLabel2;
+
     public MyJFrame() {
         InitialComponent();
     }
 
     private void InitialComponent() {
 
+        this.setTitle("域名标注");
         setLayout(null);
-        setSize(1140, 705);
+        setSize(1140, 620);
         //setSize(1000, 870);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -45,50 +51,69 @@ public class MyJFrame extends JFrame {
         panel.setLocation(0, 0);
         panel.setLayout(null);
 
+        appIdLabel1 = new JLabel("APP ID:");
+        appIdLabel1.setLocation(10, 10);
+        appIdLabel1.setSize(75, 28);
+        appIdLabel1.setFont(new Font("楷体", Font.PLAIN, 18));
+
+        appIdLabel2 = new JLabel("");
+        appIdLabel2.setLocation(85, 10);
+        appIdLabel2.setSize(90, 28);
+        appIdLabel2.setFont(new Font("楷体", Font.PLAIN, 18));
+        appIdLabel2.setHorizontalAlignment(SwingConstants.LEFT);
+        label1 = new JLabel("筛出至少");
+        label1.setLocation(10, 50);
+        label1.setSize(180, 28);
+        label1.setFont(new Font("楷体", Font.PLAIN, 18));
+
+        label2 = new JLabel("个APP引用的域名");
+        label2.setFont(new Font("楷体", Font.PLAIN, 18));
+        label2.setLocation(150, 50);
+        label2.setSize(180, 28);
         skipButton = new JButton("跳过");
-        skipButton.setFont(new Font("楷体", Font.BOLD, 22));
-        skipButton.setLocation(10, 10);
-        skipButton.setSize(80, 40);
+        skipButton.setFont(new Font("楷体", Font.PLAIN, 18));
+        skipButton.setLocation(460, 10);
+        skipButton.setSize(98, 58);
 
         filterDegreeTextField = new JTextField();
-        filterDegreeTextField.setSize(50, 40);
-        filterDegreeTextField.setLocation(100, 10);
-        filterDegreeTextField.setFont(new Font("", Font.PLAIN, 22));
-
+        filterDegreeTextField.setSize(45, 25);
+        filterDegreeTextField.setLocation(105, 50);
+        filterDegreeTextField.setFont(new Font("", Font.PLAIN, 18));
+        filterDegreeTextField.setHorizontalAlignment(SwingConstants.RIGHT);
         appNameLabel = new JTextField();
-        appNameLabel.setSize(400, 40);
-        appNameLabel.setLocation(160, 10);
-        appNameLabel.setFont(new Font("", Font.PLAIN, 22));
+        appNameLabel.setSize(420, 28);
+        appNameLabel.setLocation(570, 10);
+        appNameLabel.setFont(new Font("", Font.PLAIN, 18));
 
         appPkgNameLabel = new JTextField();
-        appPkgNameLabel.setSize(420, 40);
-        appPkgNameLabel.setLocation(570, 10);
-        appPkgNameLabel.setFont(new Font("", Font.PLAIN, 22));
+        appPkgNameLabel.setSize(420, 28);
+        appPkgNameLabel.setLocation(570, 40);
+        appPkgNameLabel.setFont(new Font("", Font.PLAIN, 18));
 
 
         submitButton = new JButton("下一组");
-        submitButton.setSize(120, 40);
+        submitButton.setSize(120, 58);
         submitButton.setLocation(1000, 10);
-        submitButton.setFont(new Font("楷体", Font.BOLD, 22));
+        submitButton.setFont(new Font("楷体", Font.PLAIN, 18));
 
         // 初始化表格
-        candidateTable = new MyTable(20, 60, 450, 700);
+        candidateTable = new MyTable(500, 60, 450, 700);
         filteredTable = new MyTable(500, 60, 450, 700);
 
         JScrollPane candidateScrollpane = new JScrollPane(candidateTable);
-        candidateScrollpane.setLocation(570, 60);
-        candidateScrollpane.setSize(550, 600);
+        candidateScrollpane.setLocation(570, 75);
+        candidateScrollpane.setSize(550, 500);
 
         JScrollPane filteredScrollpane = new JScrollPane(filteredTable);
-        filteredScrollpane.setLocation(10, 60);
-        filteredScrollpane.setSize(550, 600);
+        filteredScrollpane.setLocation(10, 75);
+        filteredScrollpane.setSize(550, 500);
 
         // 提交submit按钮点击事件
         submitButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                String appId = MyJFrame.super.getTitle();
+                String appId = appIdLabel2.getText();
                 candidateTable.processData(appId);
                 filteredTable.processData(appId);
                 updateTable();
@@ -115,7 +140,10 @@ public class MyJFrame extends JFrame {
         panel.add(candidateScrollpane);
         panel.add(filteredScrollpane);
         panel.add(footLabel);
-
+        panel.add(label1);
+        panel.add(label2);
+        panel.add(appIdLabel1);
+        panel.add(appIdLabel2);
         this.add(panel);
     }
 
@@ -162,7 +190,7 @@ public class MyJFrame extends JFrame {
         if (candidateList.size() == 0) {
             candidateList = filteredList;
         }
-        this.setTitle(candidateList.get(0)[0]);
+        appIdLabel2.setText(candidateList.get(0)[0]);
         appNameLabel.setText(candidateList.get(0)[1]);
         appPkgNameLabel.setText(candidateList.get(0)[2]);
 
@@ -175,26 +203,39 @@ public class MyJFrame extends JFrame {
 }
 
 class MyTable extends JTable {
+    private ArrayList<String[]> list;
+
     MyTable(int x, int y, int width, int height) {
-        this.getTableHeader().setFont(new Font("楷体", Font.PLAIN, 22));
+        this.getTableHeader().setFont(new Font("楷体", Font.PLAIN, 18));
         this.setRowHeight(28);
-        this.setFont(new Font("", Font.PLAIN, 22));
+        this.setFont(new Font("", Font.PLAIN, 18));
         this.setLocation(0, 0);
         this.setSize(width, height);
+
     }
 
     public void setData(ArrayList<String[]> list) {
+        this.list = list;
         Object[][] showDates = new Object[list.size()][];
         for (int i = 0; i < list.size(); i++) {
             String[] string = list.get(i);
-            String[] subDate = new String[]{string[3], string[4]};
+            String domain = string[3];
+            String domainDesc = string[4];
+            if (domain.length() > 26) {
+                domain = "..." + domain.substring(domain.length() - 26);
+            }
+//            if (domainDesc.length() > 15) {
+//                domainDesc = "..." + domainDesc.substring(domainDesc.length() - 15);
+//            }
+            String[] subDate = new String[]{domain, domainDesc};
             showDates[i] = subDate;
         }
 
         this.setModel(new DefaultTableModel(showDates, new String[]{"域名", "域名信息"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return true;
+//                return true;
+                return false;
             }
         });
 
@@ -219,13 +260,13 @@ class MyTable extends JTable {
         for (int i = 0, j = 0; i < this.getRowCount(); i++, j++) {
             if (j < this.getSelectedRows().length) {
                 while (i < this.getSelectedRows()[j]) {
-                    DBUtil.execute(sql, "-1", appId, this.getValueAt(i, 0).toString());
+                    DBUtil.execute(sql, "-1", appId, this.list.get(i)[3]);
                     i++;
                 }
-                DBUtil.execute(sql, "1", appId, this.getValueAt(i, 0).toString());
+                DBUtil.execute(sql, "1", appId, this.list.get(i)[3]);
             } else {
                 do {
-                    DBUtil.execute(sql, "-1", appId, this.getValueAt(i, 0).toString());
+                    DBUtil.execute(sql, "-1", appId, this.list.get(i)[3]);
                 } while (++i < this.getRowCount());
                 break;
             }
