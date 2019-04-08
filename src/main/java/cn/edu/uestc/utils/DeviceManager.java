@@ -17,6 +17,8 @@ public class DeviceManager {
     private static String emulatorProcessName;
     private static Logger logger = LogManager.getLogger("设备管理线程");
     public static volatile boolean isStarted = false;
+    private static int retryCount = 0;
+    private static String emulatorBackupPath;
 
     private DeviceManager() {
     }
@@ -34,6 +36,7 @@ public class DeviceManager {
         }
         //读取配置文件
         emulatorPath = properties.getProperty("emulatorPath");
+        emulatorBackupPath = properties.getProperty("emulatorBackupPath");
         emulatorProcessName = properties.getProperty("processName");
         deviceId = properties.getProperty("deviceId");
         long deviceStateCheckPeriod = Long.valueOf(properties.getProperty("deviceStateCheckPeriod"));
@@ -63,21 +66,29 @@ public class DeviceManager {
                 } catch (Exception e) {
                 }
 
-                if ("".equals(resultString) || resultString.contains("unknown")) {
-                    logger.info("模拟器网络异常，准备重启模拟器");
-                    // 下次检查时重启
+                if (!resultString.contains("time")) {
+                    logger.info("模拟器网络异常");
                     isStarted = false;
                 } else {
                     logger.info("模拟器网络正常");
+                    retryCount = 0;
                 }
 
                 // todo 检查安装线程状态, 现在的思路是检查现有的APP里是否有新安装的
 
                 if (!isStarted) {
-                    restartEmulator();
-                    logger.info("重启模拟器");
-                }
+                    if (retryCount < 3) {
+                        logger.info("重启模拟器");
+                        restartEmulator();
+                        retryCount++;
 
+                    } else {
+                        logger.info("重置模拟器");
+                        resetDevice();
+                        retryCount = 0;
+                    }
+
+                }
             }
         };
         new Timer().schedule(timerTask, 50000, deviceStateCheckPeriod);
@@ -85,17 +96,30 @@ public class DeviceManager {
 
 
     public static void work() {
-        restartEmulator();
+        if (!restartEmulator()) {
+            if (!restartEmulator()) {
+                logger.info("模拟器启动失败，请检查");
+                System.exit(-1);
+            }
+        }
     }
 
-    public static void restartEmulator() {
+    public static boolean restartEmulator() {
         try {
             killEmulatorProcess();
-            while (!startEmulatorProcess()) {
+            int count = 3;
+            while (count-- > 0) {
+                if (startEmulatorProcess()) {
+                    return true;
+                }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+        logger.info("启动模拟器失败，重置模拟器");
+        resetDevice();
+        return false;
     }
 
     // 这个方法要保证模拟器已经完全启动了
@@ -188,4 +212,88 @@ public class DeviceManager {
         }
 
     }
+
+    private static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            //递归删除目录中的子目录下
+            for (int i = 0; i < children.length; i++) {
+                deleteDir(new File(dir, children[i]));
+            }
+        }
+
+        if (dir.getName().endsWith(".dll") || dir.getName().endsWith(".exe") || dir.getName().endsWith(".png") || dir.getName().endsWith(".sys")) {
+            return true;
+        }
+        // 目录此时为空，可以删除
+        logger.info("尝试删除 " + dir.getAbsolutePath());
+        return dir.delete();
+    }
+
+
+    public static void copyFolder(File src, File dest) {
+        if (src.isDirectory()) {
+            if (!dest.exists()) {
+                dest.mkdir();
+            }
+            String files[] = src.list();
+            for (String file : files) {
+                File srcFile = new File(src, file);
+                File destFile = new File(dest, file);
+                // 递归复制
+                copyFolder(srcFile, destFile);
+            }
+        } else {
+            try {
+                if (src.getName().endsWith(".dll") || src.getName().endsWith(".exe") || src.getName().endsWith(".png") || src.getName().endsWith(".sys")) {
+                    return;
+                }
+                InputStream in = new FileInputStream(src);
+                OutputStream out = new FileOutputStream(dest);
+                logger.info("尝试拷贝 " + src.getAbsolutePath());
+                byte[] buffer = new byte[1024];
+
+                int length;
+
+                while ((length = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+                in.close();
+                out.close();
+            } catch (Exception e) {
+                // todo 有的文件会拒绝访问
+            }
+        }
+    }
+
+    private static boolean resetDevice() {
+
+        String leftApps = ExecUtil.exec("adb shell pm list package -3");
+        if (!"".equals(leftApps.trim())) {
+            //导出已安装但还未测试的APP包名
+            String export = System.currentTimeMillis() + ".txt";
+            File exportFile = new File(export);
+            try {
+                FileWriter fileWriter = new FileWriter(exportFile);
+                fileWriter.write(leftApps);
+                fileWriter.flush();
+                fileWriter.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            logger.info("已安装但还未测试的APP已导出到 " + export);
+        }
+
+        // 关闭相关进程
+        killEmulatorProcess();
+        // 还原模拟器
+        logger.info("开始还原模拟器");
+        File srcFolder = new File(emulatorBackupPath);
+        File dstFolder = new File(emulatorPath.substring(0, emulatorPath.indexOf("emulator")));
+        deleteDir(dstFolder);
+        copyFolder(srcFolder, dstFolder);
+        logger.info("还原完成");
+        return true;
+    }
+
 }
