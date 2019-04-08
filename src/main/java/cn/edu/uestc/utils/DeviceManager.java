@@ -125,7 +125,8 @@ public class DeviceManager {
     // 这个方法要保证模拟器已经完全启动了
     public static boolean startEmulatorProcess() {
         new Thread(() -> ExecUtil.exec(emulatorPath)).start();
-        while (!ExecUtil.exec("adb connect " + deviceId).contains("connected")) {
+        int count = 10;
+        while (!ExecUtil.exec("adb connect " + deviceId).contains("connected") && count-- > 0) {
             logger.info("尝试连接到 " + deviceId);
             try {
                 Thread.sleep(10000);
@@ -134,6 +135,10 @@ public class DeviceManager {
             }
         }
 
+        if (count <= 0) {
+            logger.info("模拟器启动失败, 重试");
+            return false;
+        }
         for (int i = 0; i < 10; i++) {
             logger.info("测试连接...");
             if (ExecUtil.exec("adb shell echo hello, Zimao Pang").contains("Zimao")) {
