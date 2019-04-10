@@ -1,6 +1,7 @@
 package cn.edu.uestc.animal;
 
-import cn.edu.uestc.utils.DBUtil;
+import cn.edu.uestc.DataSource;
+import cn.edu.uestc.utils.DBManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -48,16 +49,15 @@ public class ChinazCrawler {
 
     public static void main(String[] args) throws Exception {
         ChinazCrawler chinazCrawler = new ChinazCrawler();
-        Connection connection = DBUtil.getCon();
         String querySql = "select domain from domain where domain_desc is null";
         String updateSql = "update domain set domain_desc= ? where domain = ?";
-        ResultSet resultSet = (ResultSet) DBUtil.execute(querySql);
+        ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, querySql);
         while (resultSet.next()) {
             // 域名
             String domain = resultSet.getString(1);
             // 爬到的中文名字
             String name = chinazCrawler.getNameByDomain(domain);
-            DBUtil.execute(updateSql, name, domain);
+            DBManager.execute(DataSource.APP_TEST_DB, updateSql, name, domain);
             System.out.println(domain + "\t" + name);
         }
     }

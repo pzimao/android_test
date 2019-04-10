@@ -1,6 +1,6 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DBUtil;
+import cn.edu.uestc.utils.DBManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -159,13 +159,13 @@ public class MyJFrame extends JFrame {
         String preSql = "select domain, freq from (select domain, count(*) as freq from app_domain  GROUP BY domain) as t where freq > " + String.valueOf(filterDegree) + " ORDER BY freq desc ";
         String sql = "select * from `视图1_所有域名` where id in ( select * from (select DISTINCT app_domain.app_id from app_domain where label = 0 and app_domain.app_id in (select DISTINCT id from `视图1_所有域名`) limit " + skipCount + ", 1) as t)";
         String updateSql = "update app_domain set label = ? where app_id = ? and domain = ?";
-        ResultSet resultSet = (ResultSet) DBUtil.execute(sql);
+        ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql);
 
         // 需要在表格中显示的数据
         ArrayList<String[]> candidateList = new ArrayList<>();
         ArrayList<String[]> filteredList = new ArrayList<>();
         try {
-            ResultSet preResultSet = (ResultSet) DBUtil.execute(preSql);
+            ResultSet preResultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, preSql);
             HashSet<String> preSet = new HashSet<>();
             while (preResultSet.next()) {
                 preSet.add(preResultSet.getString(1));
@@ -260,13 +260,13 @@ class MyTable extends JTable {
         for (int i = 0, j = 0; i < this.getRowCount(); i++, j++) {
             if (j < this.getSelectedRows().length) {
                 while (i < this.getSelectedRows()[j]) {
-                    DBUtil.execute(sql, "-1", appId, this.list.get(i)[3]);
+                    DBManager.execute(DataSource.APP_TEST_DB, sql, "-1", appId, this.list.get(i)[3]);
                     i++;
                 }
-                DBUtil.execute(sql, "1", appId, this.list.get(i)[3]);
+                DBManager.execute(DataSource.APP_TEST_DB, sql, "1", appId, this.list.get(i)[3]);
             } else {
                 do {
-                    DBUtil.execute(sql, "-1", appId, this.list.get(i)[3]);
+                    DBManager.execute(DataSource.APP_TEST_DB, sql, "-1", appId, this.list.get(i)[3]);
                 } while (++i < this.getRowCount());
                 break;
             }

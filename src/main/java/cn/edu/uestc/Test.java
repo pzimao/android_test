@@ -1,38 +1,21 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DeviceManager;
+import cn.edu.uestc.utils.DBManager;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.sql.Connection;
 
 public class Test {
-
-    // 得到网页源码
-    public static String getHtml(String urlString) {
-        try {
-            StringBuffer html = new StringBuffer();
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            InputStreamReader isr = new InputStreamReader(conn.getInputStream());
-            BufferedReader br = new BufferedReader(isr);
-            String temp;
-            while ((temp = br.readLine()) != null) {
-                html.append(temp).append("\n");
-            }
-            br.close();
-            isr.close();
-            return html.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
     public static void main(String[] args) {
-
-        DeviceManager.startEmulatorProcess();
+        System.out.println(1);
+        System.out.println(DBManager.getConnection(DataSource.APP_TEST_DB));
+        System.out.println(2);
+        System.out.println(DBManager.getConnection(DataSource.APP_TEST_DB));
+        System.out.println(3);
+        System.out.println(DBManager.getConnection(DataSource.APP_TEST_DB));
+        System.out.println(4);
+        System.out.println(DBManager.getConnection(DataSource.CRAWLER_DB));
+//        Connection connection1 = DBManager.getConnection(DataSource.APP_TEST_DB);
+//        Connection connection2 = DBManager.getConnection(DataSource.APP_TEST_DB);
+//        System.out.println(connection1 == connection2);
     }
 }

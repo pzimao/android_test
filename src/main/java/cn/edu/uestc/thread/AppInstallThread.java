@@ -19,7 +19,7 @@ public class AppInstallThread extends Thread {
     private long intervalTimeForInstall;
 
     public AppInstallThread() {
-        logger = LogManager.getLogger("Installer");
+        logger = LogManager.getLogger("APP安装线程");
         try {
             Properties properties = new Properties();
             InputStream is = DownloadThread.class.getClassLoader().getResourceAsStream("settings.properties");

@@ -1,5 +1,6 @@
 package cn.edu.uestc.utils;
 
+import cn.edu.uestc.DataSource;
 import cn.edu.uestc.animal.ChinazCrawler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -15,11 +16,11 @@ public class TcpdumpUtil extends Thread {
     private ArrayList<Integer> appIdList = new ArrayList<>();
 
     public TcpdumpUtil(String packageName) {
-        logger = LogManager.getLogger("Tcpdump");
+        logger = LogManager.getLogger("Tcpdump抓包线程");
         this.packageName = packageName;
         // 把获取APP id 的过程放在了构造方法里
         String sql0 = "select id from app where actual_pkg_name = ?";
-        ResultSet resultSet = (ResultSet) DBUtil.execute(sql0, packageName);
+        ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql0, packageName);
         try {
             if (resultSet.next()) {
                 // 根据包名拿到app id
@@ -146,20 +147,20 @@ public class TcpdumpUtil extends Thread {
                     // 先保存到domain_cname表
                     for (String cname : cnameList) {
                         // 保存到domain_cname 表
-                        ResultSet resultSet = (ResultSet) DBUtil.execute(queryDomainCnameSql, requestDomain, cname);
+                        ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, queryDomainCnameSql, requestDomain, cname);
                         if (!resultSet.next()) {
                             // 如果没有这样的记录，就插入
-                            DBUtil.execute(insertDomainCnameSql, requestDomain, cname);
+                            DBManager.execute(DataSource.APP_TEST_DB, insertDomainCnameSql, requestDomain, cname);
                         }
                     }
 
                     // 再保存到domain_cname表
                     for (String a : aList) {
                         // 保存到domain_ip 表
-                        ResultSet resultSet = (ResultSet) DBUtil.execute(queryDomainIpSql, requestDomain, a);
+                        ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, queryDomainIpSql, requestDomain, a);
                         if (!resultSet.next()) {
                             // 如果没有这样的记录，就插入
-                            DBUtil.execute(insertDomainIpSql, requestDomain, a);
+                            DBManager.execute(DataSource.APP_TEST_DB, insertDomainIpSql, requestDomain, a);
                         }
                     }
                 } catch (Exception e) {
@@ -178,7 +179,7 @@ public class TcpdumpUtil extends Thread {
         // 插入域名
         String sql2 = "INSERT INTO `domain` (`domain`, `domain_desc`) VALUES (?, ?)";
         // 插入APP 域名 对应关系
-        String sql3 = "insert into app_domain(app_id, domain) values(? ,?)";
+        String sql3 = "insert into app_domain(app_id, domain, label) values(? ,?, ?)";
         // 检查app 与域名对应关系是否已存在
         String sql4 = "select * from app_domain where app_id = ? and domain = ?";
         // 用来去重的集合
@@ -212,24 +213,25 @@ public class TcpdumpUtil extends Thread {
         for (String domain : domainSet) {
             logger.info(packageName + " 查询域名 " + "\t" + domain);
             // 检查domain表
-            ResultSet resultSet = (ResultSet) DBUtil.execute(sql1, domain);
+            ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql1, domain);
             try {
                 if (!resultSet.next()) {
                     // domain表不包含这个域名，则添加
                     // 先爬取域名备案
                     String domain_desc = ChinazCrawler.getNameByDomain(domain);
-                    DBUtil.execute(sql2, domain, domain_desc);
+                    DBManager.execute(DataSource.APP_TEST_DB, sql2, domain, domain_desc);
                     logger.info("发现新域名 " + domain + " " + domain_desc);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
             // 对每个app id 保存一遍
+            // todo 2019-4-4 可能可以添加测试功能，即若一个域名频繁出现，则直接标注-1？
             for (Integer appId : appIdList) {
                 // 先检查app与域名对应是否已存在
                 try {
-                    if (!((ResultSet) DBUtil.execute(sql4, String.valueOf(appId), domain)).next()) {
-                        DBUtil.execute(sql3, String.valueOf(appId), domain);
+                    if (!((ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql4, String.valueOf(appId), domain)).next()) {
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, String.valueOf(appId), domain, "0");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

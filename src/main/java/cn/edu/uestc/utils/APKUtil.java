@@ -27,24 +27,4 @@ public class APKUtil {
         apkPackageName = apkPackageName.substring(0, apkPackageName.indexOf('\''));
         return apkPackageName;
     }
-
-    public static void main(String[] args) {
-        File fileFolder = new File("d:/app_test");
-        String sql = "UPDATE `app_db`.`app` SET `actual_pkg_name` = ?, dl_state = 1 WHERE `id` = ?";
-        Arrays.asList(fileFolder.listFiles()).forEach(file -> {
-            String originName = file.getAbsolutePath();
-            String appId = file.getName().split("_")[0];
-            String packageName = getApkPackageName(originName);
-            System.out.println(appId + "\t" + packageName);
-            DBUtil.execute(sql, packageName, appId);
-        });
-//        Arrays.asList(fileFolder.listFiles()).forEach(file -> {
-//            System.out.println(file.getName());
-//            String packageName = getApkPackageName(file.getAbsolutePath());
-//            if ("".equals(packageName)) {
-//                System.out.println(file.getName() + "\t" + file.delete());
-//            }
-//        });
-
-    }
 }

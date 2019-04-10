@@ -1,7 +1,8 @@
 package cn.edu.uestc.thread;
 
+import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.APKUtil;
-import cn.edu.uestc.utils.DBUtil;
+import cn.edu.uestc.utils.DBManager;
 import org.apache.http.*;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.CookieSpecs;
@@ -101,7 +102,7 @@ public class DownloadThread extends Thread {
             String sql1 = "select id, app_name, dl_url from app where dl_state != 1 and dl_url is not null and id < 184398";
             String sql2 = "update app set dl_state = ?, actual_pkg_name = ? where id = ?";
             String sql3 = "update app set dl_state = ? where id = ?";
-            ResultSet resultSet = (ResultSet) DBUtil.execute(sql1);
+            ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql1);
             try {
                 dl:
                 while (resultSet.next()) {
@@ -123,7 +124,7 @@ public class DownloadThread extends Thread {
                     // 在setURI之前，检查下载地址
                     // 如果下载地址无效，直接把结果写入数据库
                     if (!(url.contains("http:") || url.contains("https:"))) {
-                        DBUtil.execute(sql3, "-1", String.valueOf(id));
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -137,7 +138,7 @@ public class DownloadThread extends Thread {
                         e.printStackTrace();
                         logger.warn("执行GET请求时出错");
                         // 更新数据库
-                        DBUtil.execute(sql3, "-1", String.valueOf(id));
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -150,7 +151,7 @@ public class DownloadThread extends Thread {
                         Header[] headers = httpResponse.getHeaders("Location");
                         if (headers == null || headers.length <= 0) {
                             // 会有这种问题吗？
-                            DBUtil.execute(sql3, "-1", String.valueOf(id));
+                            DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                             // 继续下载其他APP
                             continue dl;
                         }
@@ -168,7 +169,7 @@ public class DownloadThread extends Thread {
                             e.printStackTrace();
                             logger.warn("执行GET请求时出错");
                             // 更新数据库
-                            DBUtil.execute(sql3, "-1", String.valueOf(id));
+                            DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                             continue dl;
                         }
 
@@ -176,7 +177,7 @@ public class DownloadThread extends Thread {
                     }
 
                     if (statusCode != HttpStatus.SC_OK) {
-                        DBUtil.execute(sql3, "-1", String.valueOf(id));
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                         continue;
                     }
 
@@ -184,7 +185,7 @@ public class DownloadThread extends Thread {
 
                     if (apkLength > maxDownloadApkFileSize || apkLength < minDownloadApkFileSize) {
                         logger.info(appName + ":" + apkLength + "字节:文件太大或太小,跳过");
-                        DBUtil.execute(sql3, "2", String.valueOf(id));
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, "2", String.valueOf(id));
                         continue;
                     }
                     logger.info(appName + ":" + apkLength + "字节:开始下载");
@@ -214,14 +215,14 @@ public class DownloadThread extends Thread {
                     } catch (Exception e) {
                         logger.warn("下载出错");
                         xml.delete();
-                        DBUtil.execute(sql3, "-1", String.valueOf(id));
+                        DBManager.execute(DataSource.APP_TEST_DB, sql3, "-1", String.valueOf(id));
                         httpGet.releaseConnection();
                         continue;
                     }
 
                     httpGet.releaseConnection();
                     logger.info(appName + ":下载完成");
-                    DBUtil.execute(sql2, "1", appPackageName, String.valueOf(id));
+                    DBManager.execute(DataSource.APP_TEST_DB, sql2, "1", appPackageName, String.valueOf(id));
 
                     this.percent = "";
                 }

@@ -21,7 +21,7 @@ public class Monkey {
     private long monkeyTimeout;
 
     public Monkey() {
-        logger = LogManager.getLogger("Monkey");
+        logger = LogManager.getLogger("Monkey线程");
 
         // 读取配置文件
         Properties properties = new Properties();

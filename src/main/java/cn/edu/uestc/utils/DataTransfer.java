@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 public class DataTransfer {
 
     public static void txtToApp() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String sql = "INSERT INTO `app_db`.`app_info2`(`id`, `app_name`, `pkg_name`, dl_url) VALUES (? , ?, ?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         File file = new File("C:\\Users\\pzima\\Desktop\\android_test\\src\\main\\resources\\part_100.txt");
@@ -42,7 +42,7 @@ public class DataTransfer {
      * 把app_info表的内容导入app表
      */
     public static void appInfoToApp() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String sql = "select provided_pkg_name, dl_url, pkg_name from app_info";
         String updateSql = "update app set actual_pkg_name = ?, dl_url = ? where provided_pkg_name = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -64,7 +64,7 @@ public class DataTransfer {
      * 把app_info表的内容导入app表
      */
     public static void appDlToApp() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String sql = "select url, state, remark from app_dl";
         String updateSql = "update app set dl_state = ? where dl_url = ?";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -81,7 +81,7 @@ public class DataTransfer {
     }
 
     public static void appDomainToDomain() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String sql = "select content, type from app_domain GROUP BY content";
         String insertSql = "INSERT INTO `app_db`.`domain`(`domain`, `domain_desc`) VALUES (?, ?)";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -99,7 +99,7 @@ public class DataTransfer {
     }
 
     public static void appDomainToTemp() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String querySql0 = "select package_name, content, count from app_domain";
         String querySql1 = "select id from app where actual_pkg_name = ?";
         String querySql2 = "select id from domain where domain = ?";
@@ -151,7 +151,7 @@ public class DataTransfer {
      * 下载的APK文件改名
      */
     public static void apkRename() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         File apkFolder = new File("D:\\app_test_complete");
         for (File apkFile : apkFolder.listFiles(file -> file.getName().endsWith(".apk"))) {
             String apkName = apkFile.getName();
@@ -183,7 +183,7 @@ public class DataTransfer {
     }
 
     public static void test() throws Exception {
-        Connection connection = DBUtil.getCon();
+        Connection connection = DBManager.getCon();
         String sql = "select id, domain from domain";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         ResultSet resultSet = preparedStatement.executeQuery();
