@@ -95,7 +95,7 @@ public class DeviceManager {
     }
 
 
-    public static void work() {
+    public static void initial() {
         if (!restartEmulator()) {
             if (!restartEmulator()) {
                 logger.info("模拟器启动失败，请检查");
