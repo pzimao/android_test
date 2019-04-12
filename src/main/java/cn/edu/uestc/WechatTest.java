@@ -1,22 +1,28 @@
 package cn.edu.uestc;
 
+import cn.edu.uestc.utils.DeviceManager;
 import cn.edu.uestc.utils.ExecUtil;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
-import java.sql.Connection;
+import java.io.FileReader;
+import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WechatTest {
 
-    private Connection connection;
     private Logger logger;
+    Pattern pattern = Pattern.compile("\\w{14}==");
 
     public WechatTest() {
         // 初始化设备；
         logger = LogManager.getLogger("wechat Tester");
+        this.prepare();
     }
 
     public void prepare() {
@@ -38,16 +44,9 @@ public class WechatTest {
             e.printStackTrace();
             logger.error("在准备阶段发生异常");
         }
+
     }
 
-
-    public void close() {
-        try {
-            this.connection.close();
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-    }
 
     public int repeatClick(int msgX, int msgY) throws Exception {
         logger.info("点击一条消息");
@@ -56,11 +55,11 @@ public class WechatTest {
         Thread.sleep(2500);
 
         // 寻找公众号名字位置
-        // 如果操作失败，则重试2次
+        // 如果操作失败，则重试1次
         int officialAccountX = -1;
         int officialAccountY = -1;
         L1:
-        for (int tryCount = 0; tryCount < 3; tryCount++) {
+        for (int tryCount = 0; tryCount < 2; tryCount++) {
             BufferedImage startImage = takeSnapshot();
             for (int x = 40; x <= 700; x += 5) {
                 for (int y = 110; y <= 710; y += 5) {
@@ -72,7 +71,6 @@ public class WechatTest {
                     }
                 }
             }
-            logger.info("未找到[公众号名称]，重试");
         }
         if (officialAccountX == -1) {
             // 未发现公众号位置
@@ -89,7 +87,7 @@ public class WechatTest {
         boolean tempFlag = false;
         for (int tryCount = 0; tryCount < 3; tryCount++) {
             BufferedImage officialAccountPage = takeSnapshot();
-            if (!(officialAccountPage.getRGB(757, 72) == -16777216 && officialAccountPage.getRGB(757, 72) == -16777216 && officialAccountPage.getRGB(757, 72) == -16777216)) {
+            if (!(officialAccountPage.getRGB(750, 83) == -16777216 && officialAccountPage.getRGB(762, 83) == -16777216 && officialAccountPage.getRGB(774, 83) == -16777216)) {
                 // 没发现【...】选项
                 logger.info("未找到[...]，重试");
             } else {
@@ -144,7 +142,7 @@ public class WechatTest {
 
     // 先截个屏，然后确定此屏上要点的位置
     // 再依次点
-    public void play() throws Exception {
+    public void click() throws Exception {
         int msgColor = -11048043;// 消息蓝色字的颜色是 -11048043
         int bgColor = -1184275;// 底色的颜色是 -1184275
         int frameColor = -6951831;// 绿框的颜色是 -6951831
@@ -161,10 +159,7 @@ public class WechatTest {
                     if (!isClicked) {
 
                         int backNumber = repeatClick(355, startY);
-                        for (int i = 0; i < backNumber; i++) {
-                            ExecUtil.exec("adb shell input keyevent 4");
-                            Thread.sleep(300);
-                        }
+
                         isClicked = true;
                     }
                 } else {
@@ -194,31 +189,75 @@ public class WechatTest {
 
         // 这两步可以不做
         // 删除模拟器里的图片
-        ExecUtil.exec("adb shell rm /data/1.png");
+//        ExecUtil.exec("adb shell rm /data/1.png");
         // 删除导出来的图片
-        ExecUtil.exec("del 1.png");
+//        ExecUtil.exec("del 1.png");
         return bufferedImage;
     }
 
-    // 这个实现只能检查图片是否完全一样
-    public static float computeImageSimilarity(BufferedImage image1, BufferedImage image2) {
+    // 计算图像相似度
+    public static double computeImageSimilarity(BufferedImage image1, BufferedImage image2) {
         if (image1.getHeight() != image2.getHeight() || image1.getWidth() != image2.getWidth()) {
             return 0;
         }
+        int totalPixel = image1.getWidth() * image2.getHeight();
+        int diffPixel = 0;
         for (int i = 0; i < image1.getWidth(); i++) {
             for (int j = 0; j < image1.getHeight(); j++) {
                 if (image1.getRGB(i, j) != image2.getRGB(i, j)) {
-                    return 0;
+                    diffPixel++;
                 }
             }
         }
-        return 1;
+        return 1.0 - diffPixel * 1.0 / totalPixel;
+    }
+
+    public LinkedList<String> getMessages(String filePath) {
+        LinkedList<String> messageList = new LinkedList<>();
+        try {
+            FileReader fileReader = new FileReader(filePath);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                // 检查下消息的类型
+                Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    if (line.equals(matcher.group())) {
+                        // 说明是只有biz
+                        messageList.add(String.format("http://mp.weixin.qq.com/mp/getverifyinfo?__biz=%s&from=singlemessage#wechat_webview_type=1&wechat_redirect", line));
+                    } else {
+                        // todo 处理消息类型
+                        messageList.add(line);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return messageList;
+    }
+
+    public void sendAndClick(String bizFilePath) throws Exception {
+        LinkedList<String> bizList = getMessages(bizFilePath);
+        for (String message : bizList) {
+            // 点击输入框
+            ExecUtil.exec("adb shell input tap " + 150 + " " + 1400);
+            // 输入消息
+            ExecUtil.exec("adb shell input text " + message.replace("&", "\\&"));
+            // 点击发送
+            ExecUtil.exec("adb shell input tap " + 770 + " " + 1400);
+            // 打开链接 & 从打开的页面返回
+            int backNumber = repeatClick(299, 1293);
+            for (int i = 0; i < backNumber; i++) {
+                ExecUtil.exec("adb shell input keyevent 4");
+                Thread.sleep(300);
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
+        DeviceManager.initial();
         WechatTest test = new WechatTest();
-        test.play();
-        // 释放资源。
-        test.close();
+        test.sendAndClick("C:\\Users\\pzima\\Desktop\\biz2.txt");
     }
 }
