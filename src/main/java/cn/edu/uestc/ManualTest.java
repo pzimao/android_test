@@ -1,6 +1,5 @@
 package cn.edu.uestc;
 
-import cn.edu.uestc.utils.DeviceManager;
 import cn.edu.uestc.utils.ExecUtil;
 import cn.edu.uestc.utils.TcpdumpUtil;
 import org.apache.log4j.LogManager;
@@ -18,10 +17,10 @@ public class ManualTest {
         HashSet<String> whiteSet = new HashSet<>();
         // 排除已经安装的app
         Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
-        while (matcher0.find()) {
-            String packageName = matcher0.group();
-            whiteSet.add(packageName);
-        }
+//        while (matcher0.find()) {
+//            String packageName = matcher0.group();
+//            whiteSet.add(packageName);
+//        }
         while (true) {
             try {
                 Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));

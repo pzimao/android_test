@@ -9,8 +9,13 @@
         <module name="android_test" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="8">
-      <module name="android_test" target="8" />
+    <bytecodeTargetLevel target="11">
+      <module name="android_test" target="1.8" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="android_test" options="-verbose -bootclasspath &quot;C:/Program Files/Java/jdk-11.0.1\lib\rt.jar;C:/Program Files/Java/jdk-11.0.1\lib\jce.jar&quot;" />
+    </option>
   </component>
 </project>

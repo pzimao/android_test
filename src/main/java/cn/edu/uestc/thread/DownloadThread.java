@@ -275,7 +275,5 @@ public class DownloadThread extends Thread {
             }
         };
         new Timer().schedule(timerTask, 5000, 5000);
-
-
     }
 }

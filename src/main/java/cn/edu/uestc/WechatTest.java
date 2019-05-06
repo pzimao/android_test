@@ -223,6 +223,7 @@ public class WechatTest {
                 Matcher matcher = pattern.matcher(line);
                 if (matcher.find()) {
                     if (line.equals(matcher.group())) {
+                        System.out.println(matcher.group());
                         // 说明是只有biz
                         messageList.add(String.format("http://mp.weixin.qq.com/mp/getverifyinfo?__biz=%s&from=singlemessage#wechat_webview_type=1&wechat_redirect", line));
                     } else {

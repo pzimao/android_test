@@ -46,10 +46,12 @@ public class Monkey {
 
         HashSet<String> whiteSet = new HashSet<>();
         if (filterInstalledAppFlag) {
-            Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
-            while (matcher0.find()) {
-                String packageName = matcher0.group();
-                whiteSet.add(packageName);
+            for (String pkgName : ExecUtil.exec("adb shell pm list package -3").split("\n")) {
+                Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+").matcher(pkgName);
+                while (matcher0.find()) {
+                    String packageName = matcher0.group();
+                    whiteSet.add(packageName);
+                }
             }
         }
         boolean workFlag = true;

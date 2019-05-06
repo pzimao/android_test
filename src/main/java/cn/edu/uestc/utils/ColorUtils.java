@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class ColorUtils {
     public static void main(String[] args) {
-        func1();
+        System.out.println(new ColorUtils().getIntFromColor(0, 0, 0));
     }
 
     /**
