@@ -1,5 +1,6 @@
-package cn.edu.uestc;
+package cn.edu.uestc.wechat.impl;
 
+import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.DBManager;
 import cn.edu.uestc.utils.ExecUtil;
 import org.apache.log4j.LogManager;
@@ -8,7 +9,6 @@ import org.apache.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;

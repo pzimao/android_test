@@ -1,4 +1,4 @@
-package cn.edu.uestc.thread;
+package cn.edu.uestc.apptest.thread;
 
 import cn.edu.uestc.utils.DeviceManager;
 import cn.edu.uestc.utils.ExecUtil;

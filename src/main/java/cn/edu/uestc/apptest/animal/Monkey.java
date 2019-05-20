@@ -1,6 +1,6 @@
-package cn.edu.uestc.animal;
+package cn.edu.uestc.apptest.animal;
 
-import cn.edu.uestc.thread.DownloadThread;
+import cn.edu.uestc.apptest.thread.DownloadThread;
 import cn.edu.uestc.utils.DeviceManager;
 import cn.edu.uestc.utils.ExecUtil;
 import cn.edu.uestc.utils.TcpdumpUtil;

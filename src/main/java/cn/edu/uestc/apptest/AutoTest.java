@@ -1,10 +1,7 @@
-package cn.edu.uestc;
+package cn.edu.uestc.apptest;
 
-import cn.edu.uestc.animal.Monkey;
-import cn.edu.uestc.thread.AppInstallThread;
+import cn.edu.uestc.apptest.animal.Monkey;
 import cn.edu.uestc.utils.DeviceManager;
-
-import java.util.concurrent.Executors;
 
 public class AutoTest {
     public static void main(String[] args) {

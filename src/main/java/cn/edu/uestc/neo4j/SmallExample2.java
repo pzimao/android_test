@@ -10,11 +10,11 @@ import java.sql.ResultSet;
 
 import static org.neo4j.driver.v1.Values.parameters;
 
-public class SmallExample {
+public class SmallExample2 {
     // Driver objects are thread-safe and are typically made available application-wide.
     Driver driver;
 
-    public SmallExample(String uri, String user, String password) {
+    public SmallExample2(String uri, String user, String password) {
         driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
@@ -57,14 +57,14 @@ public class SmallExample {
     public void addDomain() {
         int count = 0;
         try (Session session = driver.session()) {
-            String sql = "select domain, domain_desc from domain";
+            String sql = "select distinct domain_desc from domain";
             ResultSet resultSet = (ResultSet) DBManager.execute(DataSource.APP_TEST_DB, sql);
             try {
                 StringBuilder sb = new StringBuilder();
                 while (resultSet.next()) {
-                    String domain = resultSet.getString(1);
-                    String web = resultSet.getString(2);
-                    session.run(String.format("match (domain:Domain), (web:Web) where domain.name = '%s' and web.name = '%s' create (domain)-[r:Record]->(web)", domain, web));
+                    String web = resultSet.getString(1);
+                    session.run(String.format("merge (web:Web {name:'%s'}) on create set web.created = timestamp()", web));
+//                    session.run(String.format("match (ip:Ip {name:'%s'}), (area:Area {name:'%s'}) create (ip)-[:Locate]->(area)", ip, area));
 //                    session.run(String.format("merge (webName:WebName {name:'%s'}) on create set webName.created = timestamp()", desc));
 //                    String ip = resultSet.getString(2);
 //                    String area = resultSet.getString(3);
@@ -137,7 +137,7 @@ public class SmallExample {
     }
 
     public static void main(String... args) throws Exception {
-        SmallExample example = new SmallExample("bolt://localhost:7687", "neo4j", "123456");
+        SmallExample2 example = new SmallExample2("bolt://localhost:7687", "neo4j", "123456");
         example.addDomain();
         example.close();
     }

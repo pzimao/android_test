@@ -1,5 +1,6 @@
-package cn.edu.uestc;
+package cn.edu.uestc.apptest;
 
+import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.DBManager;
 
 import javax.swing.*;

@@ -1,4 +1,4 @@
-package cn.edu.uestc.thread;
+package cn.edu.uestc.apptest.thread;
 
 import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.DBManager;

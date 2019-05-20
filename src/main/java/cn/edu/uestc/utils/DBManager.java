@@ -63,9 +63,9 @@ public class DBManager {
     }
 
     public static Object execute(DataSource dataSource, String sql, String... args) {
-        System.out.println(sql);
-        Arrays.asList(args).forEach(arg -> System.out.print(arg + " "));
-        System.out.println();
+        logger.info(sql);
+//        Arrays.asList(args).forEach(arg -> System.out.print(arg + " "));
+//        System.out.println();
         Object result = null;
         try {
             PreparedStatement preparedStatement = DBManager.getConnection(dataSource).prepareStatement(sql);

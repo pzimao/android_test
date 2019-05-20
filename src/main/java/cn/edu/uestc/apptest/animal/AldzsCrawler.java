@@ -1,4 +1,4 @@
-package cn.edu.uestc.animal;
+package cn.edu.uestc.apptest.animal;
 
 import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.DBManager;

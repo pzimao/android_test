@@ -1,7 +1,7 @@
 package cn.edu.uestc.utils;
 
 import cn.edu.uestc.DataSource;
-import cn.edu.uestc.animal.ChinazCrawler;
+import cn.edu.uestc.apptest.animal.ChinazCrawler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 

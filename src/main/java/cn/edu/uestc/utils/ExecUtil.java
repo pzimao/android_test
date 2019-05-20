@@ -11,7 +11,7 @@ public class ExecUtil {
     private static Logger logger = LogManager.getLogger("cmd执行线程");
 
     public static String exec(String command) {
-//        logger.info(command);
+        logger.info(command);
         String result = "";
         try {
             Process pr = Runtime.getRuntime().exec(command);
@@ -48,7 +48,6 @@ public class ExecUtil {
             e.printStackTrace();
         }
         result = result.trim();
-//        logger.info("执行[ " + command + " ]");
         return result;
     }
 }

@@ -1,6 +1,6 @@
 package cn.edu.uestc.utils;
 
-import cn.edu.uestc.thread.DownloadThread;
+import cn.edu.uestc.apptest.thread.DownloadThread;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 

@@ -1,11 +1,10 @@
-package cn.edu.uestc;
+package cn.edu.uestc.test;
 
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.net.ssl.*;
-import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;

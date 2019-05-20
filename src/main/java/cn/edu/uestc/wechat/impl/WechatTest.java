@@ -1,4 +1,4 @@
-package cn.edu.uestc;
+package cn.edu.uestc.wechat.impl;
 
 import cn.edu.uestc.utils.DeviceManager;
 import cn.edu.uestc.utils.ExecUtil;

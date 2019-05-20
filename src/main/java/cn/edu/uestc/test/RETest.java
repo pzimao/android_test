@@ -1,4 +1,4 @@
-package cn.edu.uestc;
+package cn.edu.uestc.test;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;

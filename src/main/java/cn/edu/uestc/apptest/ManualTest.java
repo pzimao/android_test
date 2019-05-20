@@ -1,4 +1,4 @@
-package cn.edu.uestc;
+package cn.edu.uestc.apptest;
 
 import cn.edu.uestc.utils.ExecUtil;
 import cn.edu.uestc.utils.TcpdumpUtil;
@@ -16,11 +16,12 @@ public class ManualTest {
         final Logger logger = LogManager.getLogger("manual test: ");
         HashSet<String> whiteSet = new HashSet<>();
         // 排除已经安装的app
-        Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
-//        while (matcher0.find()) {
-//            String packageName = matcher0.group();
-//            whiteSet.add(packageName);
-//        }
+        Matcher matcher0 = Pattern.compile("(\\w+\\.)+\\w+\\r?").matcher(ExecUtil.exec("adb shell pm list package -3"));
+        while (matcher0.find()) {
+            String packageName = matcher0.group();
+            System.out.println("排除: " + packageName);
+            whiteSet.add(packageName);
+        }
         while (true) {
             try {
                 Matcher matcher = Pattern.compile("(\\w+\\.)+\\w+\\n?").matcher(ExecUtil.exec("adb shell pm list package -3"));
@@ -32,15 +33,15 @@ public class ManualTest {
                         logger.info("开始抓【" + packageName + "】的数据包");
                         new TcpdumpUtil(packageName).start();
 
-                        logger.info("开始测试【 " + packageName+"】，请手动操作APP");
+                        logger.info("开始测试【 " + packageName + "】，请手动操作APP");
                         logger.info("在这里输入任意字符可以结束测试...");
 
                         // 等待控制台输入
                         new Scanner(System.in).next();
 
-                        logger.info("【" + packageName+"】" + "结束测试");
+                        logger.info("【" + packageName + "】" + "结束测试");
                         ExecUtil.exec("adb remove " + packageName);
-                        logger.info("【" + packageName+"】" + "已经被卸载了");
+                        logger.info("【" + packageName + "】" + "已经被卸载了");
                         String pids = ExecUtil.exec("adb shell pidof tcpdump").trim();
                         Matcher pidMatcher = Pattern.compile("\\d+").matcher(pids);
                         while (pidMatcher.find()) {
