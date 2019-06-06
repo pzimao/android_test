@@ -1,7 +1,5 @@
 package cn.edu.uestc.utils;
 
-import cn.edu.uestc.wechat.EmulatorStateManager;
-import cn.edu.uestc.wechat.bean.Activity;
 import cn.edu.uestc.wechat.bean.Boundary;
 import cn.edu.uestc.wechat.bean.View;
 import org.apache.log4j.LogManager;

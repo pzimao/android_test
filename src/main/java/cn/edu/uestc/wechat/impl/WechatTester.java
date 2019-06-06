@@ -2,12 +2,11 @@ package cn.edu.uestc.wechat.impl;
 
 import cn.edu.uestc.DataSource;
 import cn.edu.uestc.utils.DBManager;
+import cn.edu.uestc.utils.EmulatorStateManager;
 import cn.edu.uestc.utils.ExecUtil;
-import cn.edu.uestc.utils.SQLUtil;
 import cn.edu.uestc.utils.XMLUtil;
-import cn.edu.uestc.wechat.EmulatorStateManager;
-import cn.edu.uestc.wechat.Parser;
 import cn.edu.uestc.wechat.bean.Activity;
+import cn.edu.uestc.wechat.bean.Boundary;
 import cn.edu.uestc.wechat.bean.Resource;
 import cn.edu.uestc.wechat.bean.View;
 import cn.edu.uestc.wechat.service.Tester;
@@ -17,12 +16,15 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.sql.ResultSet;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Random;
 
 
 public class WechatTester implements Tester {
 
-    public static Logger logger = LogManager.getLogger("微信测试线程");
+    public static Logger logger = LogManager.getLogger("微信测试");
 
     public WechatMessageClicker messageClicker;
 
@@ -118,19 +120,34 @@ public class WechatTester implements Tester {
             ExecUtil.exec(String.format("adb shell rm /data/data/com.tencent.mm/MicroMsg/%s/appbrand/pkg/*", folderName));
         }
         logger.info("进入小程序搜索页");
-        EmulatorStateManager.gotoView(View.XCX_SEARCH_BEFORE_V);
+        EmulatorStateManager.gotoView(View.XCX_SEARCH1_BEFORE_V);
 
         logger.info("输入小程序名称 [" + appName + "]");
-        int[] position = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, View.XCX_SEARCH_BEFORE_V).getCenterPosition();
-        ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
+
+        Boundary clearButton = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, Resource.CLEAR_BUTTON_X);
+        int[] position;
+        if (clearButton != null) {
+            position = clearButton.getCenterPosition();
+            ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
+
+        } else {
+            Boundary boundary = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, View.XCX_SEARCH1_BEFORE_V);
+            position = boundary.getCenterPosition();
+            ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
+        }
+
 
         for (char c : appName.toCharArray()) {
             ExecUtil.exec(String.format("adb shell am broadcast -a ADB_INPUT_TEXT --es msg '%c'", c));
         }
-
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         EmulatorStateManager.getCurrentView(true);
         logger.info("点击结果列表中的第1个小程序");
-        position = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, Resource.XCX_RESULT_LIST_0).getPositionToBottom(0.98);
+        position = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, Resource.XCX_RESULT_LIST_0).getPositionToBottom(0.95);
         ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
         try {
             Thread.sleep(3000);
@@ -140,12 +157,13 @@ public class WechatTester implements Tester {
 
         // #START_判断 这里开始，操作要判断是否生效
         boolean isValid = false;
+        int count = 0;
         boolean newPosition = false;
         for (int i = 0; i < 3; i++) {
             if (!newPosition) {
                 EmulatorStateManager.getCurrentView(true);
                 // 看到小程序logo，todo 可能会同时出现小程序和公众号，需要进一步确定点击位置
-                position = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, Resource.XCX_RESULT_LIST_0).getPositionToBottom(0.98);
+                position = XMLUtil.getBoundary(EmulatorStateManager.currentDocument, Resource.XCX_RESULT_LIST_0).getPositionToBottom(0.78);
                 ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
             } else {
                 // TODO 这个位置如何确定呢？
@@ -153,7 +171,7 @@ public class WechatTester implements Tester {
             }
             try {
 
-                Thread.sleep(6000);
+                Thread.sleep(10000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -162,10 +180,30 @@ public class WechatTester implements Tester {
                 // 不是想要的页面
                 ExecUtil.exec("adb shell input keyevent 4");
                 newPosition = true;
+                try {
+
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 continue;
             }
             if (EmulatorStateManager.getCurrentView(true) != View.XCX_SEARCH_AFTER_V) {
+                while (EmulatorStateManager.getCurrentActivity() == Activity.XCX_XWEB_A) {
+                    try {
+                        logger.info("结果页面加载");
+                        Thread.sleep(5000);
+                        count++;
+                        if (count % 11 == 10) {
+                            ExecUtil.exec("adb shell input keyevent 4");
+                            ExecUtil.exec(String.format("adb shell input tap %d %d", 56, 424));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 isValid = true;
+
                 break;
             }
         }
@@ -174,16 +212,9 @@ public class WechatTester implements Tester {
             return;
         }
 
-        while (EmulatorStateManager.getCurrentActivity() == Activity.XCX_XWEB_A) {
-            try {
-                logger.info("结果页面加载");
-                Thread.sleep(5000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
         String title = XMLUtil.getText(Resource.XCX_LOADING_STATE_3, Resource.XCX_GAME_LOADING_TITLE);
-        int count = 0;
+        count = 0;
         while (title != null) {
             logger.info("正在加载: " + title);
             try {
@@ -192,13 +223,22 @@ public class WechatTester implements Tester {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (count > 30) {
+            if (count > 10) {
                 ExecUtil.exec("adb shell input keyevent 4");
+                try {
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             }
             title = XMLUtil.getText(Resource.XCX_LOADING_STATE_3, Resource.XCX_GAME_LOADING_TITLE);
         }
-
+        try {
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // 需要检查是否含【关闭】图片按钮，如果含，则是小程序，否则不是
         if (XMLUtil.getBoundary(Resource.XCX_PAGE_IMAGE_CLOSE_BUTTON) == null) {
             logger.info("点进来的不是小程序页面");
@@ -212,6 +252,7 @@ public class WechatTester implements Tester {
                 e.printStackTrace();
             }
             title = XMLUtil.getText(Resource.XCX_LOADING_STATE_3, Resource.XCX_GAME_LOADING_TITLE);
+            count = 15;
             while (title != null) {
 
                 logger.info("正在加载: " + title);
@@ -221,6 +262,10 @@ public class WechatTester implements Tester {
                     e.printStackTrace();
                 }
                 title = XMLUtil.getText(Resource.XCX_LOADING_STATE_3, Resource.XCX_GAME_LOADING_TITLE);
+                count--;
+                if (count < 0) {
+                    break;
+                }
             }
         }
         logger.info("###完成!####");
@@ -231,29 +276,12 @@ public class WechatTester implements Tester {
         // 处理抓包文件
         if (messageClicker != null) {
             logger.info("开始处理抓包得到的文件、appid、 biz等");
-            messageClicker.test();
+            messageClicker.test(id);
         }
-        // 文件处理完之后，更新数据库
-        File tempFolder = messageClicker.idFileFolder;
-        List<File> fileList = Arrays.asList(tempFolder.listFiles((file) -> file.getName().endsWith(".html") && !file.getName().startsWith("_")));
-        // 更新wxxcx1、 wxgzh1表
-        for (File file : fileList) {
-            DBManager.execute(DataSource.APP_TEST_DB, SQLUtil.getSQL(Parser.parseInfo(file)));
-        }
+
         // 更新wxapkg、wxxcx、wxapkg表
         // 更新小程序文件信息到数据库
         saveToDB(id, new File(dstPath, appName));
-
-
-        String updateSql = "update wxxcx set app_id = ?, appid_extract_state = 1 where id = ?";
-
-        for (File file : fileList) {
-            if (file.getName().contains("==")) {
-                continue;
-            }
-            DBManager.execute(DataSource.APP_TEST_DB, updateSql, file.getName().substring(0, file.getName().indexOf('.')), String.valueOf(id));
-            file.renameTo(new File(file.getParent() + "/_" + file.getName()));
-        }
     }
 
     /**
@@ -296,13 +324,28 @@ public class WechatTester implements Tester {
         HashMap<Integer, String> map = getAppMap();
         for (Integer id : map.keySet()) {
             String appName = map.get(id);
-            click(id, appName);
+            try {
+                click(id, appName);
+            } catch (Exception e) {
+                try {
+                    Thread.sleep(5000);
+                    click(id, appName);
+                    continue;
+                } catch (Exception e2) {
+                    e2.printStackTrace();
+                }
+
+                EmulatorStateManager.restart();
+                click(id, appName);
+            }
+
         }
     }
 
     public static void main(String[] args) {
-        new WechatTester("d:/weixin", new WechatMessageClicker("d:/fiddler_gen")).test();
-//        new WechatTester("d:/weixin", new WechatMessageClicker("d:/fiddler_gen")).click(0, "墨迹天气");
+        new WechatTester("d:/weixin", new WechatMessageClicker("d:/fiddler_gen")).test(); // 点完小程序后处理结果
+//        new WechatTester("d:/weixin", null).test(); // 只点小程序
+
     }
 }
 

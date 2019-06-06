@@ -63,7 +63,7 @@ public class DBManager {
     }
 
     public static Object execute(DataSource dataSource, String sql, String... args) {
-        logger.info(sql);
+        logger.info(sql + "\t" + Arrays.toString(args));
 //        Arrays.asList(args).forEach(arg -> System.out.print(arg + " "));
 //        System.out.println();
         Object result = null;

@@ -13,6 +13,8 @@ public class Wxxcx1 {
     private String fwsm;
     private String zhysid;
     private String gxsj;
+    private String fws;
+    private String fwzc;
 
     private String other;
 
@@ -47,7 +49,12 @@ public class Wxxcx1 {
                 case "更新时间":
                     this.gxsj = value;
                     continue;
-
+                case "服务商":
+                    this.fws = value;
+                    continue;
+                case "服务支持":
+                    this.fwzc = value;
+                    continue;
                 default:
                     this.other = value;
             }

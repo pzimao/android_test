@@ -25,7 +25,10 @@ public class Wxgzh1 {
     private String qyyyqx;
     private String jgyxq;
     private String fws;
-    private String other;
+    private String other = "";
+
+    public Wxgzh1() {
+    }
 
     public Wxgzh1(HashMap<String, String> map) {
         for (String key : map.keySet()) {
@@ -61,7 +64,7 @@ public class Wxgzh1 {
                 case "媒体单位名称":
                     this.mtdwmc = value;
                     continue;
-                case "工商执照注册号/统一社会信用代码":
+                case "工商执照注册号":
                     this.gszzzch = value;
                     continue;
                 case "经营范围":
@@ -96,8 +99,36 @@ public class Wxgzh1 {
                     this.fws = value;
                     continue;
                 default:
-                    this.other = value;
+                    this.other += value + ";";
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Wxgzh1{" +
+                " \n biz='" + biz + '\'' +
+                ",\n zt='" + zt + '\'' +
+                ",\n qyqc='" + qyqc + '\'' +
+                ",\n mtmc='" + mtmc + '\'' +
+                ",\n jgmc='" + jgmc + '\'' +
+                ",\n xb='" + xb + '\'' +
+                ",\n dq='" + dq + '\'' +
+                ",\n mcjl='" + mcjl + '\'' +
+                ",\n rzsj='" + rzsj + '\'' +
+                ",\n mtdwmc='" + mtdwmc + '\'' +
+                ",\n gszzzch='" + gszzzch + '\'' +
+                ",\n jyfw='" + jyfw + '\'' +
+                ",\n ybjyfw='" + ybjyfw + '\'' +
+                ",\n qzxkjyfw='" + qzxkjyfw + '\'' +
+                ",\n qylx='" + qylx + '\'' +
+                ",\n mtdwlx='" + mtdwlx + '\'' +
+                ",\n jglx='" + jglx + '\'' +
+                ",\n qyclrq='" + qyclrq + '\'' +
+                ",\n qyyyqx='" + qyyyqx + '\'' +
+                ",\n jgyxq='" + jgyxq + '\'' +
+                ",\n fws='" + fws + '\'' +
+                ",\n other='" + other + '\'' + "\n" +
+                '}';
     }
 }

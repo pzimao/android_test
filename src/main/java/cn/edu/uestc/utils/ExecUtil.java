@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class ExecUtil {
-    private static Logger logger = LogManager.getLogger("cmd执行线程");
+    private static Logger logger = LogManager.getLogger("cmd执行");
 
     public static String exec(String command) {
         logger.info(command);

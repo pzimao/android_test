@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.stirante:jadx:Tag">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/stirante/jadx/Tag/jadx-Tag.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/stirante/jadx/Tag/jadx-Tag-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/stirante/jadx/Tag/jadx-Tag-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

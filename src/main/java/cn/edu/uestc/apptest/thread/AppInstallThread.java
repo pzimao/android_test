@@ -58,8 +58,11 @@ public class AppInstallThread extends Thread {
                             e.printStackTrace();
                         }
                     }
-                    ExecUtil.exec("adb install " + apkFile.getAbsolutePath());
+                    File tempFile = new File(apkFile.getAbsolutePath().substring(0, apkFile.getAbsolutePath().lastIndexOf('_')) + ".apk");
+                    apkFile.renameTo(tempFile);
+                    ExecUtil.exec("adb install \"" + tempFile.getAbsolutePath() + "\"");
                     logger.info(apkFile.getName() + ":安装完成");
+                    tempFile.renameTo(apkFile);
                     if (!apkFile.renameTo(new File(appBackupFolder + apkFile.getName()))) {
                         // 如果改名返回false，就直接删掉
                         if (apkFile.delete()) {

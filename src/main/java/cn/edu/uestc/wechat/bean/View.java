@@ -10,6 +10,9 @@ public enum View implements Comparator<View> {
     WECHAT_SEARCH_V(101, Activity.WECHAT_SEARCH_A, Resource.SEARCH_TYPE_4_X, Resource.SEARCH_BACK_BUTON_X, Resource.SEARCH_TYPE_4_X), // 搜索0
     // 小程序搜索页，搜索前
     XCX_SEARCH_BEFORE_V(102, Activity.XCX_SEARCH_A, Resource.SEARCH_TEXT_FIELD_X, Resource.SEARCH_BACK_BUTON_X, null),
+    // 小程序搜索页，搜索前
+    XCX_SEARCH1_BEFORE_V(102, Activity.XCX_SEARCH1_A, Resource.SEARCH_TEXT_FIELD_X, Resource.SEARCH_BACK_BUTON_X, null),
+
     // 小程序搜索页，搜索后
     XCX_SEARCH_AFTER_V(103, Activity.XCX_SEARCH_A, Resource.CLEAR_BUTTON_X, Resource.CLEAR_BUTTON_X, null), // 搜索结果
 
@@ -89,6 +92,7 @@ public enum View implements Comparator<View> {
         viewList.add(XCX_SEARCH_AFTER_V);
         viewList.add(WECHAT_SEARCH_V);
         viewList.add(XCX_SEARCH_BEFORE_V);
+        viewList.add(XCX_SEARCH1_BEFORE_V);
 
         viewList.add(XCX_PLUGIN_V);
 

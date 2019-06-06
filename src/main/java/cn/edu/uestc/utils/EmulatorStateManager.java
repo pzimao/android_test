@@ -1,7 +1,5 @@
-package cn.edu.uestc.wechat;
+package cn.edu.uestc.utils;
 
-import cn.edu.uestc.utils.ExecUtil;
-import cn.edu.uestc.utils.XMLUtil;
 import cn.edu.uestc.wechat.bean.Activity;
 import cn.edu.uestc.wechat.bean.Resource;
 import cn.edu.uestc.wechat.bean.View;
@@ -26,12 +24,14 @@ public class EmulatorStateManager {
         ArrayList<Activity> activityList = new ArrayList<>();
         Pattern pattern = Pattern.compile("Run #\\d+: \\w+\\{\\w+ \\w+ ((\\w*?\\.)+\\w*\\/(\\.\\w+)*\\w+)");
         String cmd = "adb shell dumpsys activity activities";
+        do {
+            String result = ExecUtil.exec(cmd);
+            Matcher matcher = pattern.matcher(result);
+            while (matcher.find()) {
+                activityList.add(Activity.getActivityByName(matcher.group(1)));
+            }
+        } while (activityList.size() == 0);
 
-        String result = ExecUtil.exec(cmd);
-        Matcher matcher = pattern.matcher(result);
-        while (matcher.find()) {
-            activityList.add(Activity.getActivityByName(matcher.group(1)));
-        }
         return activityList;
     }
 
@@ -73,11 +73,23 @@ public class EmulatorStateManager {
             // 更新view
             getCurrentView(true);
         }
+        int count = 10;
         while (getCurrentView(false).compareTo(View.WECHAT_MAIN_V) > 0) {
             int[] position = XMLUtil.getBoundary(currentDocument, currentView.backward).getCenterPosition();
             ExecUtil.exec(String.format("adb shell input tap %d %d", position[0], position[1]));
             // 更新currentView
             getCurrentView(true);
+            count--;
+            // todo 处理无限循环
+            if (count < 0) {
+                ExecUtil.exec("adb shell am start -R 3 com.tencent.mm/.ui.LauncherUI");
+                try {
+                    Thread.sleep(20000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                gotoDefaultView();
+            }
         }
     }
 
@@ -120,7 +132,7 @@ public class EmulatorStateManager {
                     xpath = currentView.forward;
                 }
             }
-            if (count == 10 || xpath == null) {
+            if (count >= 10 || xpath == null) {
                 ExecUtil.exec("adb shell input keyevent 4");
                 count = 0;
             } else {
@@ -137,8 +149,9 @@ public class EmulatorStateManager {
 
         while (true) {
             System.out.println(getCurrentView(true));
+//            System.out.println(getCurrentActivity());
             try {
-                Thread.sleep(500);
+                Thread.sleep(3000);
             } catch (Exception e) {
                 e.printStackTrace();
             }
